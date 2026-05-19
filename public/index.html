@@ -1,669 +1,300 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RC-Paysage — Community Manager</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #ffffff; --bg2: #f5f5f3; --bg3: #eeede9;
-      --text1: #1a1a1a; --text2: #555; --text3: #999;
-      --border: #e0ddd6; --purple: #534AB7; --green: #1D9E75;
-      --red: #A32D2D; --blue: #185FA5; --amber: #BA7517; --pink: #D4537E;
-    }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text1); max-width: 720px; margin: 0 auto; padding: 16px; }
-    button { cursor: pointer; font-family: inherit; }
-    input, textarea { font-family: inherit; }
-
-    /* NAV */
-    .nav { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; padding-bottom: 0; }
-    .nav-btn { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); font-size: 11px; padding: 8px 8px; white-space: nowrap; display: flex; align-items: center; gap: 4px; transition: color .15s; }
-    .nav-btn.active { border-bottom-color: var(--purple); color: var(--purple); font-weight: 600; }
-    .nav-btn i { font-size: 13px; }
-
-    /* HEADER */
-    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-    .avatar { width: 38px; height: 38px; border-radius: 8px; background: #EEEDFE; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--purple); flex-shrink: 0; }
-    .badge { margin-left: auto; font-size: 11px; background: #E1F5EE; color: #085041; padding: 3px 10px; border-radius: 6px; font-weight: 500; }
-
-    /* CARDS */
-    .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
-    .card-bg { background: var(--bg2); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .stat-card { background: var(--bg2); border-radius: 10px; padding: 12px 14px; }
-    .stat-val { font-size: 20px; font-weight: 700; color: var(--text1); }
-    .stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
-    .stat-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
-
-    /* BADGES */
-    .type-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px; }
-    .score-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
-
-    /* BAR */
-    .bar-wrap { height: 6px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 4px; }
-
-    /* TABS */
-    .sub-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-    .sub-tab { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--border); background: var(--bg2); color: var(--text2); transition: all .15s; }
-    .sub-tab.active { background: var(--purple); color: white; border-color: var(--purple); }
-
-    /* POST CARD */
-    .post-card { display: flex; gap: 12px; }
-    .post-thumb { width: 56px; height: 56px; border-radius: 8px; background: var(--bg2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-    .post-stats { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--text2); }
-    .post-stats span { display: flex; align-items: center; gap: 3px; }
-
-    /* BRIEF EDITOR */
-    .brief-editor { width: 100%; min-height: 180px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text1); background: var(--bg2); resize: vertical; }
-    .brief-editor:focus { outline: none; border-color: var(--purple); }
-
-    /* BUTTONS */
-    .btn-primary { background: var(--purple); color: white; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 500; }
-    .btn-secondary { background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12px; }
-    .btn-success { background: #E1F5EE; color: #085041; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 500; }
-    .btn-small { font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg2); color: var(--text2); }
-    .btn-small.active { background: #EEEDFE; color: var(--purple); border-color: var(--purple); font-weight: 500; }
-
-    /* INSIGHT BOX */
-    .insight-amber { background: #FAEEDA; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #633806; margin-top: 10px; }
-    .insight-blue { background: #E6F1FB; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #185FA5; margin-bottom: 12px; }
-    .insight-green { background: #E1F5EE; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #085041; }
-
-    /* OPTIMISATION */
-    .conseil-card { border: 0.5px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
-    .conseil-card.validé { border-color: var(--green); }
-    .conseil-card.passé { opacity: 0.5; }
-    .statut-btns { display: flex; gap: 6px; margin-top: 10px; }
-
-    /* LOADING */
-    .loading { color: var(--text3); font-size: 13px; padding: 20px 0; text-align: center; }
-
-    /* SECTION TITLE */
-    .section-title { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .5px; margin: 16px 0 8px; text-transform: uppercase; }
-
-    @media (max-width: 480px) {
-      body { padding: 10px; }
-      .grid2 { grid-template-columns: 1fr 1fr; gap: 8px; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RC-Paysage — Community Manager</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#fff;--bg2:#f5f5f3;--bg3:#eee;--t1:#1a1a1a;--t2:#555;--t3:#999;--border:#e0ddd6;--purple:#534AB7;--green:#1D9E75;--red:#A32D2D;--blue:#185FA5;--amber:#BA7517;--pink:#D4537E}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--t1);max-width:720px;margin:0 auto;padding:16px}
+button,input,textarea{font-family:inherit;cursor:pointer}
+.nav{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto}
+.nb{background:none;border:none;border-bottom:2px solid transparent;color:var(--t2);font-size:11px;padding:8px 8px;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.nb.active{border-bottom-color:var(--purple);color:var(--purple);font-weight:700}
+.nb i{font-size:13px}
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.av{width:38px;height:38px;border-radius:8px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--purple);flex-shrink:0}
+.bdg{margin-left:auto;font-size:11px;background:#E1F5EE;color:#085041;padding:3px 10px;border-radius:6px;font-weight:500}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card2{background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stc{background:var(--bg2);border-radius:10px;padding:12px 14px}
+.sv{font-size:20px;font-weight:700;color:var(--t1)}
+.sl{font-size:11px;color:var(--t2);margin-top:2px}
+.ss{font-size:10px;color:var(--t3);margin-top:1px}
+.tb{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px}
+.sb{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.bw{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.bf{height:100%;border-radius:4px}
+.stabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.stab{font-size:12px;padding:5px 12px;border-radius:20px;border:0.5px solid var(--border);background:var(--bg2);color:var(--t2)}
+.stab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.pc{display:flex;gap:12px}
+.pt{width:56px;height:56px;border-radius:8px;background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px}
+.ps{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--t2)}
+.ps span{display:flex;align-items:center;gap:3px}
+.be{width:100%;min-height:180px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:13px;line-height:1.6;color:var(--t1);background:var(--bg2);resize:vertical}
+.be:focus{outline:none;border-color:var(--purple)}
+.bp{background:var(--purple);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:500}
+.bs{background:var(--bg2);color:var(--t2);border:0.5px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px}
+.bsu{background:#E1F5EE;color:#085041;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500}
+.bsm{font-size:11px;padding:4px 10px;border-radius:6px;border:0.5px solid var(--border);background:var(--bg2);color:var(--t2)}
+.bsm.active{background:#EEEDFE;color:var(--purple);border-color:var(--purple)}
+.ia{background:#FAEEDA;border-radius:8px;padding:8px 12px;font-size:12px;color:#633806;margin-top:10px}
+.ib{background:#E6F1FB;border-radius:8px;padding:8px 12px;font-size:12px;color:#185FA5;margin-bottom:12px}
+.ig{background:#E1F5EE;border-radius:8px;padding:8px 12px;font-size:12px;color:#085041}
+.cc{border:0.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.stb2{display:flex;gap:6px;margin-top:10px}
+.ld{color:var(--t3);font-size:13px;padding:20px 0;text-align:center}
+.stt{font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;margin:16px 0 8px;text-transform:uppercase}
+</style>
 </head>
 <body>
-
-<div class="header">
-  <div class="avatar">RC</div>
+<div class="hdr">
+  <div class="av">RC</div>
   <div>
     <div style="font-size:15px;font-weight:700">RC-Paysage</div>
-    <div style="font-size:11px;color:var(--text3)">Community Manager · @romaincouteaux</div>
+    <div style="font-size:11px;color:var(--t3)">Community Manager · @romaincouteaux</div>
   </div>
-  <div class="badge" id="follower-badge">Chargement…</div>
+  <div class="bdg" id="fbdg">19 465 abn.</div>
 </div>
-
-<nav class="nav" id="main-nav">
-  <button class="nav-btn active" data-tab="dashboard"><i class="ti ti-chart-bar"></i>Dashboard</button>
-  <button class="nav-btn" data-tab="posts"><i class="ti ti-layout-grid"></i>Mes Posts</button>
-  <button class="nav-btn" data-tab="analyse"><i class="ti ti-chart-dots"></i>Analyse</button>
-  <button class="nav-btn" data-tab="concurrence"><i class="ti ti-eye"></i>Concurrence</button>
-  <button class="nav-btn" data-tab="optim"><i class="ti ti-bulb"></i>Optimisation</button>
-  <button class="nav-btn" data-tab="agent"><i class="ti ti-robot"></i>Agent IA</button>
-  <button class="nav-btn" data-tab="calendrier"><i class="ti ti-calendar"></i>Calendrier</button>
+<nav class="nav" id="mnav">
+  <button class="nb active" data-t="dashboard"><i class="ti ti-chart-bar"></i>Dashboard</button>
+  <button class="nb" data-t="posts"><i class="ti ti-layout-grid"></i>Mes Posts</button>
+  <button class="nb" data-t="analyse"><i class="ti ti-chart-dots"></i>Analyse</button>
+  <button class="nb" data-t="concurrence"><i class="ti ti-eye"></i>Concurrence</button>
+  <button class="nb" data-t="optim"><i class="ti ti-bulb"></i>Optimisation</button>
+  <button class="nb" data-t="agent"><i class="ti ti-robot"></i>Agent IA</button>
+  <button class="nb" data-t="cal"><i class="ti ti-calendar"></i>Calendrier</button>
 </nav>
-
-<div id="app-content"></div>
-
-<script>
-// ── CONFIG ────────────────────────────────────────────────────────────────
-const API = "/api/instagram";
-const ANTHROPIC_KEY = ""; // Renseigné via variable Vercel ANTHROPIC_KEY
-
-// ── DONNÉES STATIQUES RÉELLES ─────────────────────────────────────────────
-const STATIC = {
-  followers: 19465, followersGrowth: "+48,6% en 90j",
-  newFollowers: 6837, unfollows: 428,
-  vues90j: 706707, interactions90j: 43957, comptes90j: 268501,
-  vuesPublications: 582000, vuesReels: 37000, vuesStories: 10000,
-  visitesProfil: 13565, clicsLienBio: 287,
-  audience: {
-    genres: [{ label: "Hommes", pct: 55.9 }, { label: "Femmes", pct: 44.1 }],
-    ages: [{ label: "35–44", pct: 34.1 }, { label: "45–54", pct: 26.4 }, { label: "25–34", pct: 19.3 }, { label: "55–64", pct: 13.2 }, { label: "65+", pct: 3.8 }, { label: "18–24", pct: 2.9 }],
-    pays: [{ label: "France", pct: 41 }, { label: "États-Unis", pct: 6.2 }, { label: "Espagne", pct: 5.8 }, { label: "Italie", pct: 5.7 }, { label: "Australie", pct: 2.3 }],
-    meilleurs: [{ jour: "Dimanche", heure: "18h – 23h" }, { jour: "Lundi", heure: "18h – 21h" }],
-  },
-  posts: [
-    { id:1, titre:"FRENCH RIVIERA", caption:"Il y a des lieux où la Méditerranée dicte chaque ligne, chaque courbe, chaque choix végétal. Ce jardin de la French Riviera en est l'expression la plus pure.", vues:171500, likes:8600, comments:94, shares:1800, saves:3500, age:"9 sem", score:99, type:"IMAGE", thumb:"🌅" },
-    { id:2, titre:"Il y a des lieux qui...", caption:"Il y a des lieux qui ne ressemblent à aucun autre. Où le paysage devient architecture, où le jardin devient demeure.", vues:88000, likes:4300, comments:75, shares:872, saves:1900, age:"12 sem", score:97, type:"IMAGE", thumb:"🏡" },
-    { id:3, titre:"Il y a un moment où...", caption:"Il y a un moment où l'image dépasse le projet. Où le rendu 3D devient plus réel que la réalité.", vues:81800, likes:4800, comments:36, shares:523, saves:1400, age:"9 sem", score:96, type:"IMAGE", thumb:"🌿" },
-    { id:4, titre:"DOMAINES & MAS", caption:"Domaines, mas, bastides — chaque projet commence par une écoute. Celle du lieu, de son histoire, de ses propriétaires.", vues:55600, likes:2400, comments:27, shares:337, saves:1300, age:"7 sem", score:94, type:"IMAGE", thumb:"🏛" },
-    { id:5, titre:"Il y a des lieux qui... (2)", caption:"Il y a des lieux qui transforment celui qui les habite. Jardins de silence, de contemplation, de beauté permanente.", vues:48500, likes:2600, comments:26, shares:420, saves:1200, age:"15 sem", score:93, type:"IMAGE", thumb:"🌾" },
-    { id:6, titre:"PROVENCE", caption:"La Provence ne se raconte pas. Elle se vit, se ressent, se jardine.", vues:42000, likes:2100, comments:16, shares:626, saves:951, age:"18 sem", score:91, type:"IMAGE", thumb:"🌻" },
-    { id:7, titre:"Je conçois des jardi...", caption:"Je conçois des jardins comme on compose une pièce musicale — chaque élément à sa place, chaque saison son mouvement.", vues:11600, likes:658, comments:20, shares:102, saves:249, age:"7 sem", score:82, type:"VIDEO", thumb:"🎬" },
-    { id:8, titre:"SYMBIOSE", caption:"SYMBIOSE — quand le jardin et l'architecture ne font plus qu'un.", vues:22200, likes:505, comments:8, shares:5, saves:126, age:"22 sem", score:79, type:"IMAGE", thumb:"🍃" },
-    { id:9, titre:"ÉCHAPPÉE PROVENÇA...", caption:"Échappée provençale — un projet, un territoire, une vision.", vues:4800, likes:67, comments:4, shares:0, saves:5, age:"6 j", score:61, type:"CAROUSEL_ALBUM", thumb:"🖼" },
-    { id:10, titre:"New Project", caption:"Nouveau projet en cours.", vues:328, likes:1, comments:0, shares:0, saves:0, age:"5 j", score:12, type:"CAROUSEL_ALBUM", thumb:"🖼" },
+<div id="app"></div><script>
+const D={
+  followers:19465,growth:"+48,6% en 90j",newF:6837,unF:428,
+  vues:706707,inter:43957,comptes:268501,vPub:582000,vReel:37000,vStory:10000,
+  visits:13565,clicks:287,
+  posts:[
+    {id:1,titre:"FRENCH RIVIERA",cap:"Il y a des lieux où la Méditerranée dicte chaque ligne, chaque courbe, chaque choix végétal.",vues:171500,lk:8600,cm:94,sh:1800,sv:3500,age:"9 sem",sc:99,type:"IMAGE",th:"🌅"},
+    {id:2,titre:"Il y a des lieux qui...",cap:"Il y a des lieux qui ne ressemblent à aucun autre. Où le paysage devient architecture.",vues:88000,lk:4300,cm:75,sh:872,sv:1900,age:"12 sem",sc:97,type:"IMAGE",th:"🏡"},
+    {id:3,titre:"Il y a un moment où...",cap:"Il y a un moment où l'image dépasse le projet. Où le rendu 3D devient plus réel que la réalité.",vues:81800,lk:4800,cm:36,sh:523,sv:1400,age:"9 sem",sc:96,type:"IMAGE",th:"🌿"},
+    {id:4,titre:"DOMAINES & MAS",cap:"Domaines, mas, bastides — chaque projet commence par une écoute. Celle du lieu, de son histoire.",vues:55600,lk:2400,cm:27,sh:337,sv:1300,age:"7 sem",sc:94,type:"IMAGE",th:"🏛"},
+    {id:5,titre:"Il y a des lieux (2)",cap:"Il y a des lieux qui transforment celui qui les habite. Jardins de silence, de beauté permanente.",vues:48500,lk:2600,cm:26,sh:420,sv:1200,age:"15 sem",sc:93,type:"IMAGE",th:"🌾"},
+    {id:6,titre:"PROVENCE",cap:"La Provence ne se raconte pas. Elle se vit, se ressent, se jardine.",vues:42000,lk:2100,cm:16,sh:626,sv:951,age:"18 sem",sc:91,type:"IMAGE",th:"🌻"},
+    {id:7,titre:"Je conçois des jardins",cap:"Je conçois des jardins comme on compose une pièce musicale — chaque élément à sa place.",vues:11600,lk:658,cm:20,sh:102,sv:249,age:"7 sem",sc:82,type:"VIDEO",th:"🎬"},
+    {id:8,titre:"SYMBIOSE",cap:"SYMBIOSE — quand le jardin et l'architecture ne font plus qu'un.",vues:22200,lk:505,cm:8,sh:5,sv:126,age:"22 sem",sc:79,type:"IMAGE",th:"🍃"},
+    {id:9,titre:"ÉCHAPPÉE PROVENÇALE",cap:"Échappée provençale — un projet, un territoire, une vision.",vues:4800,lk:67,cm:4,sh:0,sv:5,age:"6 j",sc:61,type:"CAROUSEL_ALBUM",th:"🖼"},
+    {id:10,titre:"New Project",cap:"Nouveau projet en cours.",vues:328,lk:1,cm:0,sh:0,sv:0,age:"5 j",sc:12,type:"CAROUSEL_ALBUM",th:"🖼"},
   ],
-  hashtags: [
-    { tag:"#luxurygarden", score:98, raison:"Utilisé sur FRENCH RIVIERA (171K vues) — touche directement la clientèle internationale luxe." },
-    { tag:"#mediterraneangarden", score:97, raison:"Fort sur vos posts les plus partagés, cohérent avec votre style visuel provençal." },
-    { tag:"#landscapedesign", score:95, raison:"Hashtag pro-référence, capte architectes et prescripteurs — votre cœur de réseau." },
-    { tag:"#jardinsexception", score:94, raison:"Niche luxe FR — peu concurrentiel, très ciblé sur votre clientèle." },
-    { tag:"#paysagedexception", score:93, raison:"Votre positionnement signature — différenciateur fort vs paysagistes généralistes." },
-    { tag:"#provence", score:91, raison:"Géolocalise votre style, attire la clientèle mas/domaines viticoles." },
-    { tag:"#luxurylandscape", score:90, raison:"Portée internationale — cohérent avec vos 59% d'audience étrangère." },
-    { tag:"#landscapearchitecture", score:89, raison:"Cible prescripteurs architectes directement." },
-    { tag:"#paysagistesignature", score:87, raison:"Se différencie du paysagiste généraliste, valorise l'expertise." },
-    { tag:"#outdoorlifestyle", score:85, raison:"Large audience lifestyle — bonne porte d'entrée non-followers." },
-    { tag:"#mediterraneandesign", score:84, raison:"Forte résonance Espagne/Italie (11,5% de votre audience)." },
-    { tag:"#jardindeprovence", score:82, raison:"Géo-ciblage Provence, mas, domaines viticoles." },
+  hashtags:[
+    {tag:"#luxurygarden",sc:98,r:"Utilisé sur FRENCH RIVIERA (171K vues) — touche directement la clientèle internationale luxe."},
+    {tag:"#mediterraneangarden",sc:97,r:"Fort sur vos posts les plus partagés, cohérent avec votre style visuel provençal."},
+    {tag:"#landscapedesign",sc:95,r:"Hashtag pro-référence, capte architectes et prescripteurs."},
+    {tag:"#jardinsexception",sc:94,r:"Niche luxe FR — peu concurrentiel, très ciblé sur votre clientèle."},
+    {tag:"#paysagedexception",sc:93,r:"Votre positionnement signature — différenciateur fort vs paysagistes généralistes."},
+    {tag:"#provence",sc:91,r:"Géolocalise votre style, attire la clientèle mas/domaines viticoles."},
+    {tag:"#luxurylandscape",sc:90,r:"Portée internationale — cohérent avec vos 59% d'audience étrangère."},
+    {tag:"#landscapearchitecture",sc:89,r:"Cible prescripteurs architectes directement."},
+    {tag:"#paysagistesignature",sc:87,r:"Se différencie du paysagiste généraliste, valorise l'expertise."},
+    {tag:"#outdoorlifestyle",sc:85,r:"Large audience lifestyle — bonne porte d'entrée non-followers."},
+    {tag:"#mediterraneandesign",sc:84,r:"Forte résonance Espagne/Italie (11,5% de votre audience)."},
+    {tag:"#jardindeprovence",sc:82,r:"Géo-ciblage Provence, mas, domaines viticoles."},
   ],
-  competitors: [
-    { handle:"@atmoss_le_studio", type:"Studio design", followers:"12k", note:"Esthétique épurée, fort sur stories et reels courts.", force:"Cohérence visuelle", faiblesse:"Peu de projets réels" },
-    { handle:"@agence_morvant_moingeon", type:"Paysagiste", followers:"8k", note:"Positionnement similaire. Leurs titres courts en majuscules performent bien.", force:"Titres accrocheurs", faiblesse:"Fréquence irrégulière" },
-    { handle:"@kretzfamilyrealestate", type:"Immo luxe", followers:"45k", note:"Prescripteur direct — leur audience = vos prospects. Collaborations possibles.", force:"Audience luxe qualifiée", faiblesse:"Pas de contenu paysage" },
-    { handle:"@atelierhervemeyer", type:"Architecte", followers:"22k", note:"Architecte reconnu, prescripteur clé. Style proche du vôtre.", force:"Crédibilité architecturale", faiblesse:"Peu interactif" },
-    { handle:"@atelier_naudier", type:"Design intérieur", followers:"18k", note:"Clientèle identique — propriétaires haut de gamme. Synergie naturelle.", force:"Audience fidèle", faiblesse:"Contenu intérieur uniquement" },
-    { handle:"@idojardins", type:"Paysagiste", followers:"6k", note:"Concurrent direct. Posts réguliers mais visuels moins qualitatifs.", force:"Régularité", faiblesse:"Qualité visuelle inférieure" },
-    { handle:"@englishgarden", type:"Référence style", followers:"89k", note:"Référence internationale jardins luxe. Analyser leurs formats.", force:"Portée internationale", faiblesse:"Style différent" },
+  competitors:[
+    {h:"@atmoss_le_studio",type:"Studio design",f:"12k",n:"Esthétique épurée, fort sur stories et reels courts.",plus:"Cohérence visuelle",moins:"Peu de projets réels"},
+    {h:"@agence_morvant_moingeon",type:"Paysagiste",f:"8k",n:"Positionnement similaire. Leurs titres courts en majuscules performent bien.",plus:"Titres accrocheurs",moins:"Fréquence irrégulière"},
+    {h:"@kretzfamilyrealestate",type:"Immo luxe",f:"45k",n:"Prescripteur direct — leur audience = vos prospects.",plus:"Audience luxe qualifiée",moins:"Pas de contenu paysage"},
+    {h:"@atelierhervemeyer",type:"Architecte",f:"22k",n:"Architecte reconnu, prescripteur clé. Style proche du vôtre.",plus:"Crédibilité architecturale",moins:"Peu interactif"},
+    {h:"@atelier_naudier",type:"Design intérieur",f:"18k",n:"Clientèle identique — propriétaires haut de gamme.",plus:"Audience fidèle",moins:"Contenu intérieur uniquement"},
+    {h:"@idojardins",type:"Paysagiste",f:"6k",n:"Concurrent direct. Posts réguliers mais visuels moins qualitatifs.",plus:"Régularité",moins:"Qualité visuelle inférieure"},
+    {h:"@englishgarden",type:"Référence style",f:"89k",n:"Référence internationale jardins luxe.",plus:"Portée internationale",moins:"Style différent"},
   ],
+  audience:{
+    genres:[{l:"Hommes",p:55.9},{l:"Femmes",p:44.1}],
+    ages:[{l:"35–44",p:34.1},{l:"45–54",p:26.4},{l:"25–34",p:19.3},{l:"55–64",p:13.2},{l:"65+",p:3.8},{l:"18–24",p:2.9}],
+    pays:[{l:"France",p:41},{l:"États-Unis",p:6.2},{l:"Espagne",p:5.8},{l:"Italie",p:5.7},{l:"Australie",p:2.3}],
+  }
 };
 
-// ── STATE ─────────────────────────────────────────────────────────────────
-let state = {
-  tab: "dashboard",
-  analyseOnglet: "hashtags",
-  postsTri: "vues",
-  postsExpanded: null,
-  optConseils: [
-    { id:1, cat:"post", titre:"Titres en majuscules systématiques", detail:"Vos posts FRENCH RIVIERA (171K) et DOMAINES & MAS (55K) génèrent 10x plus de vues que les posts sans titre. Appliquez cette règle à 100% de vos publications.", impact:98, ease:"Facile", statut:"en-cours" },
-    { id:2, cat:"post", titre:"Publier dimanche ou lundi 18h–21h", detail:"Instagram confirme que vos followers sont actifs dimanche 18h-23h et lundi 18h-21h. Vous publiez à 16h45 — décaler d'1h30 pourrait augmenter l'engagement initial de 20-30%.", impact:92, ease:"Facile", statut:"en-cours" },
-    { id:3, cat:"feed", titre:"Augmenter la fréquence des Reels", detail:"Vos Reels ne génèrent que 37K vues vs 582K pour les publications mais captent des non-followers. Objectif : 1 Reel par semaine.", impact:88, ease:"Moyen", statut:"en-cours" },
-    { id:4, cat:"post", titre:"Ajouter #luxurygarden à chaque post", detail:"Ce hashtag est cohérent avec vos posts les plus performants. Il touche la clientèle internationale luxe qui représente 59% de votre audience.", impact:85, ease:"Facile", statut:"en-cours" },
-    { id:5, cat:"feed", titre:"Stories 3x/semaine pour fidéliser", detail:"Vos stories ne génèrent que 10K vues sur 90 jours. Les stories maintiennent la visibilité auprès de vos abonnés et améliorent votre score algorithmique.", impact:80, ease:"Facile", statut:"en-cours" },
-    { id:6, cat:"post", titre:"Légendes en 3 temps", detail:"Accroche (1 ligne) → Corps (2-3 lignes projet) → CTA. Vos meilleures légendes suivent déjà ce schéma — le systématiser.", impact:78, ease:"Moyen", statut:"en-cours" },
+let S={
+  tab:"dashboard",ao:"hashtags",pt:"vues",px:null,
+  conseils:[
+    {id:1,cat:"post",titre:"Titres en majuscules systématiques",detail:"Vos posts FRENCH RIVIERA (171K) et DOMAINES & MAS (55K) génèrent 10x plus de vues. Appliquez cette règle à 100% de vos publications.",impact:98,ease:"Facile",st:"en-cours"},
+    {id:2,cat:"post",titre:"Publier dimanche ou lundi 18h–21h",detail:"Instagram confirme que vos followers sont actifs dimanche 18h-23h et lundi 18h-21h. Vous publiez à 16h45 — décaler d'1h30 augmenterait l'engagement de 20-30%.",impact:92,ease:"Facile",st:"en-cours"},
+    {id:3,cat:"feed",titre:"Augmenter la fréquence des Reels",detail:"Vos Reels ne génèrent que 37K vues vs 582K publications mais captent des non-followers. Objectif : 1 Reel par semaine.",impact:88,ease:"Moyen",st:"en-cours"},
+    {id:4,cat:"post",titre:"Ajouter #luxurygarden à chaque post",detail:"Ce hashtag est cohérent avec vos posts les plus performants. Il touche la clientèle internationale luxe (59% de votre audience).",impact:85,ease:"Facile",st:"en-cours"},
+    {id:5,cat:"feed",titre:"Stories 3x/semaine pour fidéliser",detail:"Vos stories ne génèrent que 10K vues sur 90 jours. Les stories maintiennent la visibilité et améliorent votre score algorithmique.",impact:80,ease:"Facile",st:"en-cours"},
+    {id:6,cat:"post",titre:"Légendes en 3 temps",detail:"Accroche (1 ligne) → Corps (2-3 lignes projet) → CTA. Vos meilleures légendes suivent déjà ce schéma — le systématiser.",impact:78,ease:"Moyen",st:"en-cours"},
   ],
-  agentContenu: [],
-  agentStyle: "hybride",
-  agentBrief: "",
-  agentEditing: false,
-  agentBriefEdit: "",
-  agentValidated: [],
-  concurrenceAnalyses: {},
-  concurrenceCustom: [],
-  loading: {},
+  ac:[],astyle:"hybride",brief:"",editing:false,briefEdit:"",validated:[],
+  canal:{},ccustom:[],loading:{}
 };
 
-// ── UTILS ─────────────────────────────────────────────────────────────────
-function fmt(n) {
-  if (n >= 1000000) return (n/1000000).toFixed(1) + "M";
-  if (n >= 1000) return (n/1000).toFixed(1) + "K";
-  return String(n);
+function fmt(n){if(n>=1000000)return(n/1000000).toFixed(1)+"M";if(n>=1000)return(n/1000).toFixed(1)+"K";return""+n}
+function sc2(s){if(s>=85)return["#E1F5EE","#1D9E75"];if(s>=65)return["#FAEEDA","#BA7517"];return["#FCEBEB","#A32D2D"]}
+function tb(t){const m={IMAGE:["#F1EFE8","#5F5E5A","Photo"],CAROUSEL_ALBUM:["#E6F1FB","#185FA5","Carrousel"],VIDEO:["#FBEAF0","#993556","Vidéo"],REELS:["#FBEAF0","#993556","Reel"]};const[bg,c,l]=m[t]||["#F1EFE8","#5F5E5A",t];return`<span class="tb" style="background:${bg};color:${c}">${l}</span>`}
+function bar(v,mx,c="#534AB7",h=6){return`<div class="bw" style="height:${h}px"><div class="bf" style="width:${Math.min(100,(v/mx)*100)}%;background:${c}"></div></div>`}
+function sbdg(s){const[bg,c]=sc2(s);return`<span class="sb" style="background:${bg};color:${c}">${s}/100</span>`}
+</script><script>
+function render(){
+  document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("active",b.dataset.t===S.tab));
+  document.getElementById("app").innerHTML=pages[S.tab]();
+  bind();
 }
 
-function scoreColor(s) {
-  if (s >= 85) return ["#E1F5EE","#1D9E75"];
-  if (s >= 65) return ["#FAEEDA","#BA7517"];
-  return ["#FCEBEB","#A32D2D"];
-}
-
-function typeBadge(type) {
-  const m = { IMAGE:["#F1EFE8","#5F5E5A","Photo"], CAROUSEL_ALBUM:["#E6F1FB","#185FA5","Carrousel"], VIDEO:["#FBEAF0","#993556","Vidéo"], REELS:["#FBEAF0","#993556","Reel"] };
-  const [bg,c,l] = m[type] || ["#F1EFE8","#5F5E5A",type];
-  return `<span class="type-badge" style="background:${bg};color:${c}">${l}</span>`;
-}
-
-function bar(val, max, color="#534AB7", h=6) {
-  const pct = Math.min(100, (val/max)*100);
-  return `<div class="bar-wrap" style="height:${h}px"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>`;
-}
-
-function scoreBadge(s) {
-  const [bg,c] = scoreColor(s);
-  return `<span class="score-badge" style="background:${bg};color:${c}">${s}/100</span>`;
-}
-
-async function callClaude(prompt) {
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json", "x-api-key": ANTHROPIC_KEY, "anthropic-version":"2023-06-01" },
-    body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1200, messages:[{ role:"user", content:prompt }] })
-  });
-  const d = await r.json();
-  return d.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
-}
-
-async function fetchIG(endpoint) {
-  const r = await fetch(`${API}?endpoint=${endpoint}`);
-  return r.json();
-}
-
-// ── RENDER ────────────────────────────────────────────────────────────────
-function render() {
-  document.getElementById("follower-badge").textContent = fmt(STATIC.followers) + " abn.";
-  document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === state.tab));
-  const el = document.getElementById("app-content");
-  el.innerHTML = tabs[state.tab]();
-  bindEvents();
-}
-
-function bindEvents() {
-  // nav
-  document.querySelectorAll(".nav-btn").forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });
-  // sub-tabs
-  document.querySelectorAll(".sub-tab").forEach(b => b.onclick = () => {
-    const group = b.dataset.group;
-    const val = b.dataset.val;
-    if (group === "analyse") state.analyseOnglet = val;
-    if (group === "posts-tri") state.postsTri = val;
+function bind(){
+  document.querySelectorAll(".nb").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render()});
+  document.querySelectorAll(".stab").forEach(b=>b.onclick=()=>{
+    if(b.dataset.g==="ao")S.ao=b.dataset.v;
+    if(b.dataset.g==="pt")S.pt=b.dataset.v;
     render();
   });
-  // expand post
-  document.querySelectorAll(".expand-btn").forEach(b => b.onclick = () => {
-    state.postsExpanded = state.postsExpanded === +b.dataset.id ? null : +b.dataset.id;
-    render();
+  document.querySelectorAll(".xbtn").forEach(b=>b.onclick=()=>{S.px=S.px===+b.dataset.id?null:+b.dataset.id;render()});
+  document.querySelectorAll(".stbtn").forEach(b=>b.onclick=()=>{
+    const id=+b.dataset.id,st=b.dataset.s;
+    S.conseils=S.conseils.map(c=>c.id===id?{...c,st}:c);render();
   });
-  // optimisation statuts
-  document.querySelectorAll(".statut-btn").forEach(b => b.onclick = () => {
-    const id = +b.dataset.id, s = b.dataset.s;
-    state.optConseils = state.optConseils.map(c => c.id===id ? {...c,statut:s} : c);
-    render();
+  document.querySelectorAll(".ctog").forEach(b=>b.onclick=()=>{
+    const v=b.dataset.v;
+    S.ac=S.ac.includes(v)?S.ac.filter(x=>x!==v):[...S.ac,v];render();
   });
-  // agent contenu toggles
-  document.querySelectorAll(".contenu-toggle").forEach(b => b.onclick = () => {
-    const v = b.dataset.v;
-    state.agentContenu = state.agentContenu.includes(v) ? state.agentContenu.filter(x=>x!==v) : [...state.agentContenu, v];
-    render();
-  });
-  // agent style
-  document.querySelectorAll(".style-btn").forEach(b => b.onclick = () => { state.agentStyle = b.dataset.s; render(); };
-  // agent generate
-  const genBtn = document.getElementById("agent-gen-btn");
-  if (genBtn) genBtn.onclick = async () => {
-    if (!state.agentContenu.length) return;
-    state.loading.agent = true; render();
-    const styleDesc = {
-      "rcpaysage": "Style RC-Paysage : direct, ancré territoire, luxe sobre, professionnel. Phrases affirmatives courtes.",
-      "mosiman": "Style Mosiman (DJ, billet France Inter) : poétique, phrases courtes et suspendues, images sensorielles, répétitions rythmiques ('Il y a des lieux...', 'Il y a un moment...'), mélancolie douce, ellipses, silences entre les mots. Très musical dans la structure.",
-      "hybride": "Style hybride : structure rythmique et poétique de Mosiman (phrases courtes, suspensions, répétitions) avec l'ancrage concret de RC-Paysage (territoire, matière, projet, lieu)."
-    }[state.agentStyle];
-    const prompt = `Tu es community manager expert pour RC-Paysage (@romaincouteaux), paysagiste DPLG, Drôme/Provence. 19 465 abonnés. Audience 35-54 ans, 59% internationale. Posts les plus performants : titres courts en MAJUSCULES + image jardin luxe provençal. Meilleurs jours : dimanche et lundi 18h-21h.
-
-Contenu disponible cette semaine : ${state.agentContenu.join(", ")}.
-${styleDesc}
-
-Génère un brief de publication complet :
-1. TITRE (2-4 mots en majuscules)
-2. FORMAT recommandé + justification courte
-3. LÉGENDE complète prête à publier dans le style demandé (accroche + corps + CTA discret)
-4. 8 HASHTAGS optimaux parmi : #luxurygarden #mediterraneangarden #landscapedesign #jardinsexception #paysagedexception #provence #luxurylandscape #landscapearchitecture #paysagistesignature #outdoorlifestyle #mediterraneandesign #jardindeprovence
-5. MEILLEUR MOMENT de publication
-6. SCORE DE PERFORMANCE ATTENDU /100 avec justification en 1 ligne
-
-En français.`;
-    state.agentBrief = await callClaude(prompt);
-    state.agentBriefEdit = state.agentBrief;
-    state.agentEditing = false;
-    state.loading.agent = false;
-    render();
+  document.querySelectorAll(".sty").forEach(b=>b.onclick=()=>{S.astyle=b.dataset.s;render()});
+  const gb=document.getElementById("genbtn");
+  if(gb)gb.onclick=async()=>{
+    if(!S.ac.length)return;
+    S.loading.agent=true;render();
+    const sd={rcpaysage:"Style RC-Paysage : direct, luxe sobre, professionnel, ancré territoire.",mosiman:"Style Mosiman (billet France Inter) : poétique, phrases courtes suspendues, répétitions rythmiques (Il y a des lieux..., Il y a un moment...), mélancolie douce, ellipses, très musical.",hybride:"Style hybride : rythme poétique Mosiman + ancrage concret RC-Paysage (lieu, matière, projet, territoire)."};
+    try{
+      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window._akey||"","anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:`Tu es community manager pour RC-Paysage (@romaincouteaux), paysagiste DPLG Drôme/Provence. 19465 abonnés. Contenu dispo: ${S.ac.join(", ")}. ${sd[S.astyle]} Génère: 1.TITRE majuscules 2-4 mots 2.FORMAT+justification 3.LÉGENDE complète prête à publier 4.8 hashtags parmi #luxurygarden #mediterraneangarden #landscapedesign #jardinsexception #paysagedexception #provence #luxurylandscape #landscapearchitecture #paysagistesignature #outdoorlifestyle #mediterraneandesign #jardindeprovence 5.MEILLEUR MOMENT 6.SCORE/100+justification. En français.`}]})});
+      const d=await r.json();
+      S.brief=d.content?.filter(b=>b.type==="text").map(b=>b.text).join("")||"Erreur API";
+    }catch(e){S.brief="Agent IA non disponible (clé API manquante).";}
+    S.briefEdit=S.brief;S.editing=false;S.loading.agent=false;render();
   };
-  // agent edit
-  const editBtn = document.getElementById("agent-edit-btn");
-  if (editBtn) editBtn.onclick = () => { state.agentEditing = true; render(); };
-  // agent textarea
-  const ta = document.getElementById("agent-textarea");
-  if (ta) ta.oninput = () => { state.agentBriefEdit = ta.value; };
-  // agent regen partiel
-  document.querySelectorAll(".regen-part").forEach(b => b.onclick = async () => {
-    const part = b.dataset.part;
-    b.textContent = "…";
-    const prompts = {
-      titre: `Génère uniquement un nouveau TITRE (2-4 mots en majuscules) pour un post Instagram de RC-Paysage paysagiste luxe Provence. Contenu : ${state.agentContenu.join(", ")}. Style ${state.agentStyle}. Réponds avec le titre uniquement.`,
-      legende: `Génère uniquement une nouvelle LÉGENDE Instagram pour RC-Paysage. Contenu : ${state.agentContenu.join(", ")}. Style : ${{ rcpaysage:"RC-Paysage direct luxe", mosiman:"poétique Mosiman France Inter", hybride:"hybride Mosiman + RC-Paysage" }[state.agentStyle]}. Légende seule, prête à publier.`,
-      hashtags: `Génère 8 hashtags optimaux pour RC-Paysage parmi : #luxurygarden #mediterraneangarden #landscapedesign #jardinsexception #paysagedexception #provence #luxurylandscape #landscapearchitecture #paysagistesignature #outdoorlifestyle #mediterraneandesign #jardindeprovence. Contenu : ${state.agentContenu.join(", ")}. Réponds avec les hashtags uniquement.`,
-    };
-    const result = await callClaude(prompts[part]);
-    state.agentBriefEdit += "\n\n--- NOUVELLE VERSION " + part.toUpperCase() + " ---\n" + result;
-    if (document.getElementById("agent-textarea")) document.getElementById("agent-textarea").value = state.agentBriefEdit;
-    b.textContent = "↻ " + part;
-  });
-  // agent valider
-  const valBtn = document.getElementById("agent-val-btn");
-  if (valBtn) valBtn.onclick = () => {
-    const final = state.agentEditing ? state.agentBriefEdit : state.agentBrief;
-    state.agentValidated.unshift({ date: new Date().toLocaleDateString("fr-FR"), contenu: state.agentContenu.join(", "), style: state.agentStyle, brief: final });
-    state.agentBrief = ""; state.agentBriefEdit = ""; state.agentEditing = false; state.agentContenu = [];
-    render();
+  const eb=document.getElementById("editbtn");
+  if(eb)eb.onclick=()=>{S.editing=true;render()};
+  const ta=document.getElementById("brieftxt");
+  if(ta)ta.oninput=()=>{S.briefEdit=ta.value};
+  const vb=document.getElementById("valbtn");
+  if(vb)vb.onclick=()=>{
+    S.validated.unshift({date:new Date().toLocaleDateString("fr-FR"),contenu:S.ac.join(", "),style:S.astyle,brief:S.editing?S.briefEdit:S.brief});
+    S.brief="";S.briefEdit="";S.editing=false;S.ac=[];render();
   };
-  // concurrence analyse
-  document.querySelectorAll(".analyse-concurrent-btn").forEach(b => b.onclick = async () => {
-    const h = b.dataset.h;
-    state.loading[h] = true; render();
-    const result = await callClaude(`Tu es expert stratégie Instagram luxe. Analyse le compte ${h} pour RC-Paysage (@romaincouteaux, paysagiste DPLG, 19 465 abonnés, Drôme/Provence, posts les plus viraux : titres majuscules + jardins luxe provençaux).
-
-4 points :
-1. Ce qu'ils font mieux que RC-Paysage (2-3 lignes)
-2. Ce que RC-Paysage fait mieux (2-3 lignes)
-3. Opportunité concrète de collaboration ou différenciation (2 lignes)
-4. Conseil actionnable immédiat pour RC-Paysage (1-2 lignes)
-
-Direct, expert, sans rembourrage. Français.`);
-    state.concurrenceAnalyses[h] = result;
-    state.loading[h] = false; render();
+  document.querySelectorAll(".rgbtn").forEach(b=>b.onclick=async()=>{
+    const part=b.dataset.p;b.textContent="…";
+    const pp={titre:`Génère uniquement un TITRE (2-4 mots majuscules) pour RC-Paysage. Contenu: ${S.ac.join(", ")}. Style ${S.astyle}. Titre seul.`,legende:`Génère uniquement une LÉGENDE Instagram pour RC-Paysage. Contenu: ${S.ac.join(", ")}. Style: ${{rcpaysage:"RC-Paysage direct luxe",mosiman:"poétique Mosiman France Inter",hybride:"hybride Mosiman+RC-Paysage"}[S.astyle]}. Légende seule prête à publier.`,hashtags:`Génère 8 hashtags pour RC-Paysage parmi: #luxurygarden #mediterraneangarden #landscapedesign #jardinsexception #paysagedexception #provence #luxurylandscape #landscapearchitecture #paysagistesignature #outdoorlifestyle #mediterraneandesign #jardindeprovence. Contenu: ${S.ac.join(", ")}. Hashtags seuls.`};
+    try{
+      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window._akey||"","anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:pp[part]}]})});
+      const d=await r.json();
+      const txt=d.content?.filter(x=>x.type==="text").map(x=>x.text).join("")||"";
+      S.briefEdit+="\n\n--- "+part.toUpperCase()+" ---\n"+txt;
+      if(document.getElementById("brieftxt"))document.getElementById("brieftxt").value=S.briefEdit;
+    }catch(e){}
+    b.textContent="↻ "+part;
   });
-  // add custom competitor
-  const addBtn = document.getElementById("add-concurrent-btn");
-  if (addBtn) addBtn.onclick = () => {
-    const inp = document.getElementById("custom-concurrent-input");
-    const h = inp.value.trim().replace(/^@/,"");
-    if (h && !state.concurrenceCustom.includes("@"+h)) state.concurrenceCustom.push("@"+h);
-    inp.value = "";
-    render();
+  document.querySelectorAll(".acabtn").forEach(b=>b.onclick=async()=>{
+    const h=b.dataset.h;S.loading[h]=true;render();
+    try{
+      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window._akey||"","anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,messages:[{role:"user",content:`Expert stratégie Instagram luxe. Analyse ${h} pour RC-Paysage (@romaincouteaux, paysagiste DPLG, 19465 abonnés, Drôme/Provence). 4 points: 1.Ce qu'ils font mieux (2-3 lignes) 2.Ce que RC-Paysage fait mieux (2-3 lignes) 3.Opportunité concrète (2 lignes) 4.Conseil actionnable immédiat (1-2 lignes). Direct, expert, français.`}]})});
+      const d=await r.json();
+      S.canal[h]=d.content?.filter(b=>b.type==="text").map(b=>b.text).join("")||"";
+    }catch(e){S.canal[h]="Agent IA non disponible.";}
+    S.loading[h]=false;render();
+  });
+  const addb=document.getElementById("addbtn");
+  if(addb)addb.onclick=()=>{
+    const inp=document.getElementById("cinp");
+    const h=inp.value.trim().replace(/^@/,"");
+    if(h&&!S.ccustom.includes("@"+h))S.ccustom.push("@"+h);
+    inp.value="";render();
   };
 }
 
-// ── TABS ──────────────────────────────────────────────────────────────────
-const tabs = {
-
-dashboard: () => `
-<div class="card-bg" style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+const pages={
+dashboard:()=>`
+<div class="card2" style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
   <div style="width:50px;height:50px;border-radius:50%;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--purple);flex-shrink:0">RC</div>
-  <div>
-    <div style="font-weight:700;font-size:15px">RC-Paysage</div>
-    <div style="font-size:12px;color:var(--purple)">@romaincouteaux</div>
-    <div style="font-size:11px;color:var(--text2);margin-top:2px">Paysagiste DPLG · Jardins d'exception · Drôme & Provence</div>
-  </div>
-  <div style="margin-left:auto;text-align:right">
-    <div style="font-size:22px;font-weight:700">${STATIC.followers.toLocaleString("fr-FR")}</div>
-    <div style="font-size:11px;color:var(--green);font-weight:500">${STATIC.followersGrowth}</div>
-  </div>
+  <div><div style="font-weight:700;font-size:15px">RC-Paysage</div><div style="font-size:12px;color:var(--purple)">@romaincouteaux</div><div style="font-size:11px;color:var(--t2);margin-top:2px">Paysagiste DPLG · Jardins d'exception · Drôme & Provence</div></div>
+  <div style="margin-left:auto;text-align:right"><div style="font-size:22px;font-weight:700">${D.followers.toLocaleString("fr-FR")}</div><div style="font-size:11px;color:var(--green);font-weight:500">${D.growth}</div></div>
 </div>
-
-<div class="grid2">
-  ${[
-    { l:"Vues (90j)", v:"706,7K", sub:"22,5% followers · 77,5% non-followers", ic:"ti-eye", c:"var(--purple)" },
-    { l:"Interactions (90j)", v:"43,9K", sub:"18,8% followers · 81,2% non-followers", ic:"ti-heart", c:"var(--pink)" },
-    { l:"Comptes touchés", v:"268,5K", sub:"Sur 90 jours", ic:"ti-users", c:"var(--blue)" },
-    { l:"Visites profil", v:"13,5K", sub:"287 clics lien bio", ic:"ti-user", c:"var(--green)" },
-  ].map(s=>`<div class="stat-card"><i class="ti ${s.ic}" style="font-size:16px;color:${s.c};margin-bottom:6px;display:block"></i><div class="stat-val">${s.v}</div><div class="stat-label">${s.l}</div><div class="stat-sub">${s.sub}</div></div>`).join("")}
+<div class="g2">
+  ${[{l:"Vues (90j)",v:"706,7K",s:"22,5% followers · 77,5% non-followers",i:"ti-eye",c:"var(--purple)"},{l:"Interactions",v:"43,9K",s:"18,8% followers · 81,2% non-followers",i:"ti-heart",c:"var(--pink)"},{l:"Comptes touchés",v:"268,5K",s:"Sur 90 jours",i:"ti-users",c:"var(--blue)"},{l:"Visites profil",v:"13,5K",s:"287 clics lien bio",i:"ti-user",c:"var(--green)"}].map(x=>`<div class="stc"><i class="ti ${x.i}" style="font-size:16px;color:${x.c};margin-bottom:6px;display:block"></i><div class="sv">${x.v}</div><div class="sl">${x.l}</div><div class="ss">${x.s}</div></div>`).join("")}
 </div>
-
 <div class="card">
   <div style="font-size:13px;font-weight:700;margin-bottom:12px">Vues par type de contenu (90j)</div>
-  ${[{l:"Publications",v:582000,c:"var(--purple)"},{l:"Reels",v:37000,c:"var(--pink)"},{l:"Stories",v:10000,c:"var(--blue)"}].map(f=>`
-    <div style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:3px"><span>${f.l}</span><span style="font-weight:500">${fmt(f.v)}</span></div>
-      ${bar(f.v,582000,f.c)}
-    </div>`).join("")}
-  <div class="insight-amber" style="margin-top:12px">⚠️ <strong>Insight :</strong> Vos publications génèrent 15x plus de vues que vos Reels. Vos Reels sont sous-exploités par rapport à leur potentiel d'acquisition.</div>
+  ${[{l:"Publications",v:582000,c:"var(--purple)"},{l:"Reels",v:37000,c:"var(--pink)"},{l:"Stories",v:10000,c:"var(--blue)"}].map(x=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:3px"><span>${x.l}</span><span style="font-weight:500">${fmt(x.v)}</span></div>${bar(x.v,582000,x.c)}</div>`).join("")}
+  <div class="ia">⚠️ <strong>Insight :</strong> Vos publications génèrent 15x plus de vues que vos Reels. Potentiel Reels sous-exploité.</div>
 </div>
-
 <div class="card">
   <div style="font-size:13px;font-weight:700;margin-bottom:10px">Croissance — nouveaux vs perdus</div>
   <div style="display:flex;gap:10px">
-    <div style="flex:1;background:#E1F5EE;border-radius:8px;padding:10px;text-align:center">
-      <div style="font-size:20px;font-weight:700;color:var(--green)">+${STATIC.newFollowers.toLocaleString("fr-FR")}</div>
-      <div style="font-size:11px;color:#085041">Nouveaux abonnés</div>
-    </div>
-    <div style="flex:1;background:#FCEBEB;border-radius:8px;padding:10px;text-align:center">
-      <div style="font-size:20px;font-weight:700;color:var(--red)">-${STATIC.unfollows}</div>
-      <div style="font-size:11px;color:#7A1F1F">Arrêts de suivi</div>
-    </div>
+    <div style="flex:1;background:#E1F5EE;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--green)">+${D.newF.toLocaleString("fr-FR")}</div><div style="font-size:11px;color:#085041">Nouveaux abonnés</div></div>
+    <div style="flex:1;background:#FCEBEB;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--red)">-${D.unF}</div><div style="font-size:11px;color:#7A1F1F">Arrêts de suivi</div></div>
   </div>
-  <div style="font-size:12px;color:var(--text3);margin-top:8px">Taux de rétention : ${((1-STATIC.unfollows/STATIC.newFollowers)*100).toFixed(1)}% — excellent.</div>
+  <div style="font-size:12px;color:var(--t3);margin-top:8px">Taux de rétention : ${((1-D.unF/D.newF)*100).toFixed(1)}% — excellent.</div>
 </div>`,
 
-posts: () => {
-  const sorted = [...STATIC.posts].sort((a,b)=>b[state.postsTri]-a[state.postsTri]);
-  return `
-<div class="sub-tabs">
-  ${[["vues","👁 Vues"],["likes","❤️ J'aime"],["shares","↗ Partages"],["saves","🔖 Enreg."],["score","⭐ Score"]].map(([k,l])=>`<button class="sub-tab${state.postsTri===k?" active":""}" data-group="posts-tri" data-val="${k}">${l}</button>`).join("")}
-</div>
-<div style="font-size:11px;color:var(--text3);margin-bottom:12px">${STATIC.posts.length} publications · triées par <strong>${state.postsTri}</strong></div>
-${sorted.map(p=>{
-  const exp = state.postsExpanded===p.id;
-  const [bg,c] = scoreColor(p.score);
-  return `<div class="card">
-    <div class="post-card">
-      <div class="post-thumb">${p.thumb}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;gap:6px">
-          <div>${typeBadge(p.type)} <span style="font-size:11px;color:var(--text3);margin-left:6px">${p.age}</span></div>
-          ${scoreBadge(p.score)}
-        </div>
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px">${p.titre}</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.4;margin-bottom:6px">
-          ${exp ? p.caption : p.caption.slice(0,80)+(p.caption.length>80?"…":"")}
-          ${p.caption.length>80?`<button class="expand-btn" data-id="${p.id}" style="background:none;border:none;color:var(--purple);font-size:11px;cursor:pointer;padding:0 4px">${exp?"Moins":"Plus"}</button>`:""}
-        </div>
-        <div class="post-stats">
-          <span style="color:var(--purple)"><i class="ti ti-eye"></i> ${fmt(p.vues)} vues</span>
-          <span style="color:var(--pink)"><i class="ti ti-heart"></i> ${fmt(p.likes)}</span>
-          <span style="color:var(--blue)"><i class="ti ti-message"></i> ${p.comments}</span>
-          <span style="color:var(--green)"><i class="ti ti-share"></i> ${p.shares}</span>
-          <span style="color:var(--amber)"><i class="ti ti-bookmark"></i> ${fmt(p.saves)}</span>
-        </div>
-      </div>
-    </div>
-  </div>`;}).join("")}`;
+posts:()=>{
+  const s=[...D.posts].sort((a,b)=>b[S.pt]-a[S.pt]);
+  return`<div class="stabs">${[["vues","👁 Vues"],["lk","❤️ Likes"],["sh","↗ Partages"],["sv","🔖 Enreg."],["sc","⭐ Score"]].map(([k,l])=>`<button class="stab${S.pt===k?" active":""}" data-g="pt" data-v="${k}">${l}</button>`).join("")}</div>
+<div style="font-size:11px;color:var(--t3);margin-bottom:12px">${D.posts.length} publications · triées par ${S.pt}</div>
+${s.map(p=>{const ex=S.px===p.id;return`<div class="card"><div class="pc"><div class="pt">${p.th}</div><div style="flex:1;min-width:0">
+<div style="display:flex;justify-content:space-between;margin-bottom:4px;gap:6px"><div>${tb(p.type)} <span style="font-size:11px;color:var(--t3);margin-left:6px">${p.age}</span></div>${sbdg(p.sc)}</div>
+<div style="font-size:13px;font-weight:700;margin-bottom:4px">${p.titre}</div>
+<div style="font-size:12px;color:var(--t2);line-height:1.4;margin-bottom:6px">${ex?p.cap:p.cap.slice(0,80)+(p.cap.length>80?"…":"")}${p.cap.length>80?`<button class="xbtn" data-id="${p.id}" style="background:none;border:none;color:var(--purple);font-size:11px;cursor:pointer;padding:0 4px">${ex?"Moins":"Plus"}</button>`:""}</div>
+<div class="ps"><span style="color:var(--purple)"><i class="ti ti-eye"></i> ${fmt(p.vues)}</span><span style="color:var(--pink)"><i class="ti ti-heart"></i> ${fmt(p.lk)}</span><span style="color:var(--blue)"><i class="ti ti-message"></i> ${p.cm}</span><span style="color:var(--green)"><i class="ti ti-share"></i> ${p.sh}</span><span style="color:var(--amber)"><i class="ti ti-bookmark"></i> ${fmt(p.sv)}</span></div>
+</div></div></div>`}).join("")}`;
 },
 
-analyse: () => {
-  const o = state.analyseOnglet;
-  let content = "";
-  if (o==="hashtags") content = `
-    <div class="insight-blue">📌 <strong>Source :</strong> Vos hashtags réels, scorés selon les performances de vos posts où ils apparaissent (vues, partages, enregistrements).</div>
-    ${STATIC.hashtags.map(h=>`<div class="card">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px">${`<span style="font-size:13px;font-weight:700;color:var(--purple)">${h.tag}</span>`}${scoreBadge(h.score)}</div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.5">${h.raison}</div>
-      <div style="margin-top:6px">${bar(h.score,100,"var(--purple)",4)}</div>
-    </div>`).join("")}`;
-
-  if (o==="horaires") content = `
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px">Meilleurs créneaux Instagram</div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Source : données "Heures auxquelles vos followers sont actifs" de votre compte</div>
-      ${STATIC.audience.meilleurs.map(m=>`<div style="display:flex;justify-content:space-between;padding:10px 12px;background:#E1F5EE;border-radius:8px;margin-bottom:8px"><span style="font-weight:700;color:#085041">${m.jour}</span><span style="color:var(--green);font-weight:600">${m.heure}</span></div>`).join("")}
-      <div class="insight-amber">⚠️ Vous publiez souvent à 16h45 — vos followers sont actifs à partir de 18h. Décaler d'1h30 pourrait augmenter l'engagement immédiat de 20-30%.</div>
-    </div>
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Activité par jour</div>
-      ${[{j:"Dimanche",a:95,best:true},{j:"Lundi",a:88,best:true},{j:"Samedi",a:82},{j:"Vendredi",a:78},{j:"Mercredi",a:75},{j:"Mardi",a:72},{j:"Jeudi",a:70}].map(d=>`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:72px;font-size:12px;color:${d.best?"var(--purple)":"var(--text2)"};font-weight:${d.best?700:400}">${d.j}</div>
-          <div style="flex:1">${bar(d.a,100,d.best?"var(--purple)":"#B0ACDE",8)}</div>
-          ${d.best?`<span style="font-size:10px;background:#EEEDFE;color:var(--purple);padding:2px 6px;border-radius:4px">⭐ Optimal</span>`:""}
-        </div>`).join("")}
-    </div>`;
-
-  if (o==="formats") content = `
-    <div class="insight-blue">📊 <strong>Source :</strong> Analyse de vos ${STATIC.posts.length} publications avec données réelles vues, likes, partages, enregistrements.</div>
-    ${[
-      {type:"Publications",vues:"582K",insight:"Format dominant — 93% de vos vues totales. Vos posts avec titre court en MAJUSCULES génèrent jusqu'à 171K vues. Pattern à systématiser.",c:"var(--purple)"},
-      {type:"Reels",vues:"37K",insight:"Sous-exploité mais fort potentiel d'acquisition non-followers. Objectif : 1 Reel/semaine pour élargir l'audience au-delà de votre cercle actuel.",c:"var(--pink)"},
-      {type:"Stories",vues:"10K",insight:"Usage minimal. Les stories fidélisent les abonnés existants et améliorent votre score algorithmique — augmenter à 3-4/semaine.",c:"var(--blue)"},
-    ].map(f=>`<div class="card">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:700">${f.type}</span><span style="font-size:13px;color:${f.c};font-weight:600">${f.vues} vues</span></div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.5">${f.insight}</div>
-    </div>`).join("")}`;
-
-  if (o==="audience") content = `
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Genre</div>
-      ${STATIC.audience.genres.map(g=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${g.label}</span><span style="font-weight:600">${g.pct}%</span></div>${bar(g.pct,100,g.label==="Hommes"?"var(--blue)":"var(--pink)")}</div>`).join("")}
-      <div style="font-size:11px;color:var(--text3);margin-top:6px">Majorité masculine (55,9%) — cohérent avec propriétaires de domaines et prescripteurs architectes.</div>
-    </div>
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Tranches d'âge</div>
-      ${STATIC.audience.ages.map(a=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${a.label}</span><span style="font-weight:600">${a.pct}%</span></div>${bar(a.pct,34.1,"var(--purple)")}</div>`).join("")}
-      <div style="font-size:11px;color:var(--text3);margin-top:6px">Cœur de cible 35–54 ans (60,5%) — parfaitement aligné avec votre clientèle propriétaires de mas/villas.</div>
-    </div>
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Pays</div>
-      ${STATIC.audience.pays.map(p=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${p.label}</span><span style="font-weight:600">${p.pct}%</span></div>${bar(p.pct,41,"var(--green)")}</div>`).join("")}
-      <div style="font-size:11px;color:var(--text3);margin-top:6px">59% d'audience internationale — potentiel pour clientèle étrangère cherchant propriétés en Provence.</div>
-    </div>`;
-
-  return `
-    <div class="sub-tabs">
-      ${[["hashtags","#️⃣ Hashtags"],["horaires","🕐 Horaires"],["formats","📊 Formats"],["audience","👥 Audience"]].map(([k,l])=>`<button class="sub-tab${o===k?" active":""}" data-group="analyse" data-val="${k}">${l}</button>`).join("")}
-    </div>${content}`;
+analyse:()=>{
+  const o=S.ao;
+  let c="";
+  if(o==="hashtags")c=`<div class="ib">📌 <strong>Source :</strong> Vos hashtags réels, scorés selon performances de vos posts (vues, partages, enregistrements).</div>${D.hashtags.map(h=>`<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:700;color:var(--purple)">${h.tag}</span>${sbdg(h.sc)}</div><div style="font-size:12px;color:var(--t2);line-height:1.5">${h.r}</div><div style="margin-top:6px">${bar(h.sc,100,"var(--purple)",4)}</div></div>`).join("")}`;
+  if(o==="horaires")c=`<div class="card"><div style="font-size:13px;font-weight:700;margin-bottom:4px">Meilleurs créneaux Instagram</div><div style="font-size:11px;color:var(--t3);margin-bottom:12px">Source : données réelles "Heures auxquelles vos followers sont actifs"</div>${[{j:"Dimanche",h:"18h – 23h"},{j:"Lundi",h:"18h – 21h"}].map(m=>`<div style="display:flex;justify-content:space-between;padding:10px 12px;background:#E1F5EE;border-radius:8px;margin-bottom:8px"><span style="font-weight:700;color:#085041">${m.j}</span><span style="color:var(--green);font-weight:600">${m.h}</span></div>`).join("")}<div class="ia">⚠️ Vous publiez souvent à 16h45 — vos followers sont actifs à partir de 18h. Décaler d'1h30 pourrait augmenter l'engagement de 20-30%.</div></div>
+  <div class="card"><div style="font-size:13px;font-weight:700;margin-bottom:12px">Activité par jour</div>${[{j:"Dimanche",a:95,b:true},{j:"Lundi",a:88,b:true},{j:"Samedi",a:82},{j:"Vendredi",a:78},{j:"Mercredi",a:75},{j:"Mardi",a:72},{j:"Jeudi",a:70}].map(d=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:72px;font-size:12px;color:${d.b?"var(--purple)":"var(--t2)"};font-weight:${d.b?700:400}">${d.j}</div><div style="flex:1">${bar(d.a,100,d.b?"var(--purple)":"#B0ACDE",8)}</div>${d.b?`<span style="font-size:10px;background:#EEEDFE;color:var(--purple);padding:2px 6px;border-radius:4px">⭐ Optimal</span>`:""}</div>`).join("")}</div>`;
+  if(o==="formats")c=`<div class="ib">📊 <strong>Source :</strong> Analyse de vos ${D.posts.length} publications avec données réelles.</div>${[{t:"Publications",v:"582K",i:"Format dominant — 93% de vos vues. Titres en MAJUSCULES génèrent jusqu'à 171K vues. Pattern à systématiser.",c:"var(--purple)"},{t:"Reels",v:"37K",i:"Sous-exploité mais fort potentiel d'acquisition non-followers. Objectif : 1 Reel/semaine.",c:"var(--pink)"},{t:"Stories",v:"10K",i:"Usage minimal. Les stories fidélisent les abonnés et améliorent votre score algorithmique.",c:"var(--blue)"}].map(f=>`<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:700">${f.t}</span><span style="color:${f.c};font-weight:600">${f.v} vues</span></div><div style="font-size:12px;color:var(--t2);line-height:1.5">${f.i}</div></div>`).join("")}`;
+  if(o==="audience")c=`<div class="card"><div style="font-size:13px;font-weight:700;margin-bottom:10px">Genre</div>${D.audience.genres.map(g=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${g.l}</span><span style="font-weight:600">${g.p}%</span></div>${bar(g.p,100,g.l==="Hommes"?"var(--blue)":"var(--pink)")}</div>`).join("")}<div style="font-size:11px;color:var(--t3);margin-top:6px">Majorité masculine (55,9%) — cohérent avec propriétaires de domaines et prescripteurs architectes.</div></div>
+  <div class="card"><div style="font-size:13px;font-weight:700;margin-bottom:10px">Tranches d'âge</div>${D.audience.ages.map(a=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${a.l}</span><span style="font-weight:600">${a.p}%</span></div>${bar(a.p,34.1,"var(--purple)")}</div>`).join("")}<div style="font-size:11px;color:var(--t3);margin-top:6px">Cœur de cible 35–54 ans (60,5%) — parfaitement aligné avec votre clientèle.</div></div>
+  <div class="card"><div style="font-size:13px;font-weight:700;margin-bottom:10px">Pays</div>${D.audience.pays.map(p=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${p.l}</span><span style="font-weight:600">${p.p}%</span></div>${bar(p.p,41,"var(--green)")}</div>`).join("")}<div style="font-size:11px;color:var(--t3);margin-top:6px">59% d'audience internationale — potentiel clientèle étrangère cherchant propriétés en Provence.</div></div>`;
+  return`<div class="stabs">${[["hashtags","#️⃣ Hashtags"],["horaires","🕐 Horaires"],["formats","📊 Formats"],["audience","👥 Audience"]].map(([k,l])=>`<button class="stab${S.ao===k?" active":""}" data-g="ao" data-v="${k}">${l}</button>`).join("")}</div>${c}`;
 },
 
-concurrence: () => {
-  const all = [...STATIC.competitors, ...state.concurrenceCustom.map(h=>({ handle:h, type:"Ajouté", followers:"?", note:"Cliquez sur Analyser pour une analyse IA.", force:"—", faiblesse:"—" }))];
-  return `
-    <div class="insight-blue" style="margin-bottom:12px">ℹ️ Comptes sélectionnés par vous — concurrents directs, prescripteurs et références. L'analyse IA compare chaque compte avec votre positionnement RC-Paysage.</div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input id="custom-concurrent-input" placeholder="Ajouter un compte @..." style="flex:1;font-size:13px;padding:8px 12px;border-radius:8px;border:0.5px solid var(--border);background:var(--bg2);color:var(--text1)"/>
-      <button id="add-concurrent-btn" class="btn-primary" style="font-size:12px;padding:8px 14px">+ Ajouter</button>
-    </div>
-    ${all.map(c=>`<div class="card">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-        <div><span style="font-weight:700;font-size:14px;color:var(--purple)">${c.handle}</span> <span style="font-size:11px;color:var(--text3)">${c.type} · ${c.followers}</span></div>
-        <button class="analyse-concurrent-btn btn-small" data-h="${c.handle}" style="color:var(--purple)">Analyser IA</button>
-      </div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">${c.note}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px">
-        <span style="background:#E1F5EE;color:#085041;padding:2px 8px;border-radius:4px">✓ ${c.force}</span>
-        <span style="background:#FCEBEB;color:#7A1F1F;padding:2px 8px;border-radius:4px">✗ ${c.faiblesse}</span>
-      </div>
-      ${state.loading[c.handle] ? `<div class="loading">Analyse en cours…</div>` : state.concurrenceAnalyses[c.handle] ? `<div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${state.concurrenceAnalyses[c.handle]}</div>` : ""}
-    </div>`).join("")}`;
+concurrence:()=>{
+  const all=[...D.competitors,...S.ccustom.map(h=>({h,type:"Ajouté",f:"?",n:"Cliquez Analyser pour une analyse IA.",plus:"—",moins:"—"}))];
+  return`<div class="ib" style="margin-bottom:12px">ℹ️ Comptes sélectionnés par vous — concurrents, prescripteurs et références. L'analyse IA compare chaque compte avec votre positionnement.</div>
+<div style="display:flex;gap:8px;margin-bottom:14px"><input id="cinp" placeholder="Ajouter un compte @..." style="flex:1;font-size:13px;padding:8px 12px;border-radius:8px;border:0.5px solid var(--border);background:var(--bg2);color:var(--t1)"/><button id="addbtn" class="bp" style="font-size:12px;padding:8px 14px">+ Ajouter</button></div>
+${all.map(c=>`<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div><span style="font-weight:700;font-size:14px;color:var(--purple)">${c.h}</span> <span style="font-size:11px;color:var(--t3)">${c.type} · ${c.f}</span></div><button class="acabtn bsm" data-h="${c.h}" style="color:var(--purple)">Analyser IA</button></div><div style="font-size:12px;color:var(--t2);margin-bottom:8px">${c.n}</div><div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px"><span style="background:#E1F5EE;color:#085041;padding:2px 8px;border-radius:4px">✓ ${c.plus}</span><span style="background:#FCEBEB;color:#7A1F1F;padding:2px 8px;border-radius:4px">✗ ${c.moins}</span></div>${S.loading[c.h]?`<div class="ld">Analyse en cours…</div>`:S.canal[c.h]?`<div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--t2);line-height:1.6;white-space:pre-wrap">${S.canal[c.h]}</div>`:""}</div>`).join("")}`;
 },
 
-optim: () => {
-  const post = state.optConseils.filter(c=>c.cat==="post");
-  const feed = state.optConseils.filter(c=>c.cat==="feed");
-  const sl = {
-    "en-cours":["#FAEEDA","#633806","En cours"],
-    "validé":["#E1F5EE","#085041","✓ Validé"],
-    "passé":["#F1EFE8","#888780","→ Passé"],
-  };
-  const renderConseils = (list) => list.map(c=>`
-    <div class="conseil-card ${c.statut}" style="border-color:${c.statut==="validé"?"var(--green)":c.statut==="passé"?"var(--border)":"var(--border)"}">
-      <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px">
-        <span style="font-size:13px;font-weight:700;flex:1">${c.titre}</span>
-        <div style="display:flex;gap:4px;align-items:center">
-          <span style="font-size:10px;background:#EEEDFE;color:var(--purple);padding:2px 6px;border-radius:4px">+${c.impact}</span>
-          <span style="font-size:10px;background:var(--bg2);color:var(--text3);padding:2px 6px;border-radius:4px">${c.ease}</span>
-        </div>
-      </div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px">${c.detail}</div>
-      <div class="statut-btns">
-        ${Object.entries(sl).map(([s,[bg,col,label]])=>`<button class="statut-btn" data-id="${c.id}" data-s="${s}" style="font-size:11px;padding:4px 10px;border-radius:6px;border:0.5px solid var(--border);background:${c.statut===s?bg:"var(--bg2)"};color:${c.statut===s?col:"var(--text2)"};cursor:pointer;font-weight:${c.statut===s?"600":"400"}">${label}</button>`).join("")}
-      </div>
-    </div>`).join("");
-  return `
-    <div class="grid2" style="margin-bottom:16px">
-      ${[["post","📝 Publications",post],["feed","🖼 Feed & Stratégie",feed]].map(([k,l,cs])=>`
-        <div class="stat-card" style="text-align:center">
-          <div style="font-size:12px;font-weight:600">${l}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">${cs.filter(c=>c.statut==="validé").length}/${cs.length} validés</div>
-        </div>`).join("")}
-    </div>
-    <div class="section-title">📝 recommandations publications</div>
-    ${renderConseils(post)}
-    <div class="section-title">🖼 recommandations feed & stratégie</div>
-    ${renderConseils(feed)}`;
+optim:()=>{
+  const sl={"en-cours":["#FAEEDA","#633806","En cours"],"validé":["#E1F5EE","#085041","✓ Validé"],"passé":["#F1EFE8","#888780","→ Passé"]};
+  const rc=list=>list.map(c=>`<div class="cc ${c.st}" style="border-color:${c.st==="validé"?"var(--green)":"var(--border)"}"><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px"><span style="font-size:13px;font-weight:700;flex:1">${c.titre}</span><div style="display:flex;gap:4px"><span style="font-size:10px;background:#EEEDFE;color:var(--purple);padding:2px 6px;border-radius:4px">+${c.impact}</span><span style="font-size:10px;background:var(--bg2);color:var(--t3);padding:2px 6px;border-radius:4px">${c.ease}</span></div></div><div style="font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:10px">${c.detail}</div><div class="stb2">${Object.entries(sl).map(([s,[bg,col,lab]])=>`<button class="stbtn" data-id="${c.id}" data-s="${s}" style="font-size:11px;padding:4px 10px;border-radius:6px;border:0.5px solid var(--border);background:${c.st===s?bg:"var(--bg2)"};color:${c.st===s?col:"var(--t2)"};font-weight:${c.st===s?700:400}">${lab}</button>`).join("")}</div></div>`).join("");
+  return`<div class="g2" style="margin-bottom:16px">${[["post","📝 Publications"],["feed","🖼 Feed & Stratégie"]].map(([k,l])=>`<div class="stc" style="text-align:center"><div style="font-size:12px;font-weight:600">${l}</div><div style="font-size:11px;color:var(--t3);margin-top:4px">${S.conseils.filter(c=>c.cat===k&&c.st==="validé").length}/${S.conseils.filter(c=>c.cat===k).length} validés</div></div>`).join("")}</div>
+<div class="stt">📝 publications</div>${rc(S.conseils.filter(c=>c.cat==="post"))}
+<div class="stt">🖼 feed & stratégie</div>${rc(S.conseils.filter(c=>c.cat==="feed"))}`;
 },
 
-agent: () => {
-  const options = ["Photos de réalisation","Vidéo terrain","Rendu 3D","Image IA promptée","Carrousel Photoshop","Vidéo 3D animation","Before/After","Détail végétal/matériau"];
-  const styles = [["rcpaysage","🏡 RC-Paysage","Direct, ancré territoire, luxe sobre"],["mosiman","🎵 Style Mosiman","Poétique, rythmique, suspendu"],["hybride","✨ Hybride","Mosiman + ancrage RC-Paysage"]];
-  const hasBrief = !!state.agentBrief;
-  const briefContent = state.agentEditing ? state.agentBriefEdit : state.agentBrief;
-
-  return `
-    <div style="font-size:13px;font-weight:700;margin-bottom:10px">Contenu disponible cette semaine</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
-      ${options.map(o=>`<button class="contenu-toggle" data-v="${o}" style="font-size:12px;padding:6px 12px;border-radius:20px;border:1.5px solid ${state.agentContenu.includes(o)?"var(--purple)":"var(--border)"};background:${state.agentContenu.includes(o)?"#EEEDFE":"var(--bg2)"};color:${state.agentContenu.includes(o)?"var(--purple)":"var(--text2)"};font-weight:${state.agentContenu.includes(o)?600:400}">${state.agentContenu.includes(o)?"✓ ":""}${o}</button>`).join("")}
-    </div>
-
-    <div style="font-size:13px;font-weight:700;margin-bottom:10px">Style de rédaction</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-      ${styles.map(([s,l,d])=>`<button class="style-btn" data-s="${s}" style="text-align:left;padding:10px 14px;border-radius:10px;border:1.5px solid ${state.agentStyle===s?"var(--purple)":"var(--border)"};background:${state.agentStyle===s?"#EEEDFE":"var(--bg2)"};cursor:pointer">
-        <div style="font-size:13px;font-weight:${state.agentStyle===s?700:500};color:${state.agentStyle===s?"var(--purple)":"var(--text1)"}">${l}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${d}</div>
-      </button>`).join("")}
-    </div>
-
-    <button id="agent-gen-btn" class="btn-primary" style="width:100%;padding:12px;border-radius:10px;font-size:13px;opacity:${state.agentContenu.length===0?0.4:1}">
-      ${state.loading.agent ? "Génération en cours…" : hasBrief ? "Regénérer le brief ↗" : "Générer le brief de publication ↗"}
-    </button>
-
-    ${hasBrief ? `
-    <div class="card" style="margin-top:16px;border-color:var(--purple)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--purple)">Brief · ${state.agentContenu.join(", ")} · Style ${styles.find(s=>s[0]===state.agentStyle)[1]}</div>
-        ${!state.agentEditing?`<button id="agent-edit-btn" class="btn-small" style="color:var(--purple)">✏️ Modifier</button>`:""}
-      </div>
-
-      ${state.agentEditing
-        ? `<textarea id="agent-textarea" class="brief-editor">${briefContent}</textarea>
-           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-             <span style="font-size:11px;color:var(--text3);padding-top:4px">Regénérer :</span>
-             ${[["titre","↻ Titre"],["legende","↻ Légende"],["hashtags","↻ Hashtags"]].map(([p,l])=>`<button class="regen-part btn-small" data-part="${p}">${l}</button>`).join("")}
-           </div>`
-        : `<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${briefContent}</div>`
-      }
-
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button id="agent-val-btn" class="btn-success" style="flex:1;padding:10px">✓ Valider et sauvegarder</button>
-        <button id="agent-gen-btn" class="btn-secondary" style="padding:10px">↻ Regénérer</button>
-      </div>
-    </div>` : ""}
-
-    ${state.agentValidated.length ? `
-    <div class="section-title" style="margin-top:20px">✓ Briefs validés (${state.agentValidated.length})</div>
-    ${state.agentValidated.map((b,i)=>`<div class="card-bg" style="margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-        <span style="font-weight:600;color:var(--text1)">${b.contenu}</span>
-        <span style="color:var(--text3)">${b.date}</span>
-      </div>
-      <div style="font-size:11px;color:var(--purple);margin-bottom:6px">${styles.find(s=>s[0]===b.style)[1]}</div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.5;white-space:pre-wrap;max-height:80px;overflow:hidden">${b.brief.slice(0,200)}…</div>
-    </div>`).join("")}` : ""}`;
+agent:()=>{
+  const opts=["Photos de réalisation","Vidéo terrain","Rendu 3D","Image IA promptée","Carrousel Photoshop","Vidéo 3D animation","Before/After","Détail végétal/matériau"];
+  const stys=[["rcpaysage","🏡 RC-Paysage","Direct, ancré territoire, luxe sobre"],["mosiman","🎵 Style Mosiman","Poétique, rythmique, suspendu — France Inter"],["hybride","✨ Hybride","Rythme Mosiman + ancrage RC-Paysage"]];
+  const hb=!!S.brief;
+  return`<div style="font-size:13px;font-weight:700;margin-bottom:10px">Contenu disponible cette semaine</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">${opts.map(o=>`<button class="ctog" data-v="${o}" style="font-size:12px;padding:6px 12px;border-radius:20px;border:1.5px solid ${S.ac.includes(o)?"var(--purple)":"var(--border)"};background:${S.ac.includes(o)?"#EEEDFE":"var(--bg2)"};color:${S.ac.includes(o)?"var(--purple)":"var(--t2)"};font-weight:${S.ac.includes(o)?700:400}">${S.ac.includes(o)?"✓ ":""}${o}</button>`).join("")}</div>
+<div style="font-size:13px;font-weight:700;margin-bottom:10px">Style de rédaction</div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">${stys.map(([s,l,d])=>`<button class="sty" data-s="${s}" style="text-align:left;padding:10px 14px;border-radius:10px;border:1.5px solid ${S.astyle===s?"var(--purple)":"var(--border)"};background:${S.astyle===s?"#EEEDFE":"var(--bg2)"}"><div style="font-size:13px;font-weight:${S.astyle===s?700:500};color:${S.astyle===s?"var(--purple)":"var(--t1)"}">${l}</div><div style="font-size:11px;color:var(--t3);margin-top:2px">${d}</div></button>`).join("")}</div>
+<button id="genbtn" class="bp" style="width:100%;padding:12px;border-radius:10px;opacity:${S.ac.length===0?0.4:1}">${S.loading.agent?"Génération en cours…":hb?"Regénérer le brief ↗":"Générer le brief de publication ↗"}</button>
+${hb?`<div class="card" style="margin-top:16px;border-color:var(--purple)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:12px;font-weight:600;color:var(--purple)">Brief · ${S.ac.join(", ")}</div>${!S.editing?`<button id="editbtn" class="bsm" style="color:var(--purple)">✏️ Modifier</button>`:""}</div>${S.editing?`<textarea id="brieftxt" class="be">${S.briefEdit}</textarea><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><span style="font-size:11px;color:var(--t3);padding-top:4px">Regénérer :</span>${[["titre","↻ Titre"],["legende","↻ Légende"],["hashtags","↻ Hashtags"]].map(([p,l])=>`<button class="rgbtn bsm" data-p="${p}">${l}</button>`).join("")}</div>`:`<div style="font-size:13px;color:var(--t2);line-height:1.7;white-space:pre-wrap">${S.brief}</div>`}<div style="display:flex;gap:8px;margin-top:14px"><button id="valbtn" class="bsu" style="flex:1;padding:10px">✓ Valider et sauvegarder</button><button id="genbtn" class="bs" style="padding:10px">↻ Regénérer</button></div></div>`:""}
+${S.validated.length?`<div class="stt" style="margin-top:20px">✓ Briefs validés (${S.validated.length})</div>${S.validated.map(b=>`<div class="card2"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="font-weight:600">${b.contenu}</span><span style="color:var(--t3)">${b.date}</span></div><div style="font-size:11px;color:var(--purple);margin-bottom:6px">${stys.find(s=>s[0]===b.style)[1]}</div><div style="font-size:12px;color:var(--t2);line-height:1.5;max-height:80px;overflow:hidden">${b.brief.slice(0,200)}…</div></div>`).join("")}`:""}`;
 },
 
-calendrier: () => `
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div style="font-size:14px;font-weight:700">Mai 2026</div>
-    <div style="font-size:11px;color:var(--text3)">Objectif : 3 posts/semaine</div>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
-    ${["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].map(d=>`<div style="font-size:11px;color:var(--text3);text-align:center;padding:3px 0">${d}</div>`).join("")}
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
-    ${[...Array(3)].map((_,i)=>`<div key="e${i}"></div>`).join("")}
-    ${[...Array(31)].map((_,i)=>{
-      const d = i+1;
-      const plan = {19:{l:"Aujourd'hui",c:"#378ADD"},25:{l:"Dim 18h",c:"#1D9E75"},26:{l:"Lun 18h",c:"#1D9E75"},29:{l:"Reel",c:"#D4537E"}};
-      const p = plan[d];
-      const today = d===19;
-      return `<div style="border-radius:6px;padding:4px 3px;min-height:44px;background:${today?"#E6F1FB":p?"var(--bg2)":"transparent"};border:0.5px solid ${today?"var(--blue)":"var(--border)"}">
-        <div style="font-size:11px;color:${today?"var(--blue)":"var(--text2)"};text-align:center;font-weight:${today?700:400}">${d}</div>
-        ${p?`<div style="font-size:8px;color:${p.c};text-align:center;margin-top:2px;line-height:1.2">${p.l}</div>`:""}
-      </div>`;}).join("")}
-  </div>
-  <div class="insight-green" style="margin-top:14px">
-    <strong>Rappel :</strong> Meilleurs jours = Dimanche & Lundi · Heure = 18h–21h · Décaler vos publications de 16h45 à 18h pour maximiser la portée.
-  </div>`,
-
+cal:()=>`
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-size:14px;font-weight:700">Mai 2026</div><div style="font-size:11px;color:var(--t3)">Objectif : 3 posts/semaine</div></div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">${["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].map(d=>`<div style="font-size:11px;color:var(--t3);text-align:center;padding:3px 0">${d}</div>`).join("")}</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${[...Array(3)].map(()=>"<div></div>").join("")}${[...Array(31)].map((_,i)=>{const d=i+1;const p={19:{l:"Aujourd'hui",c:"#378ADD"},25:{l:"Dim 18h",c:"#1D9E75"},26:{l:"Lun 18h",c:"#1D9E75"},29:{l:"Reel",c:"#D4537E"}}[d];const t=d===19;return`<div style="border-radius:6px;padding:4px 3px;min-height:44px;background:${t?"#E6F1FB":p?"var(--bg2)":"transparent"};border:0.5px solid ${t?"var(--blue)":"var(--border)"}"><div style="font-size:11px;color:${t?"var(--blue)":"var(--t2)"};text-align:center;font-weight:${t?700:400}">${d}</div>${p?`<div style="font-size:8px;color:${p.c};text-align:center;margin-top:2px">${p.l}</div>`:""}</div>`}).join("")}</div>
+<div class="ig" style="margin-top:14px"><strong>Rappel :</strong> Meilleurs jours = Dimanche & Lundi · Heure = 18h–21h · Décaler vos publications de 16h45 à 18h.</div>`
 };
 
-// ── INIT ──────────────────────────────────────────────────────────────────
 render();
-
-// Auto-refresh profil via API
-(async () => {
-  try {
-    const d = await fetchIG("profile");
-    if (d.followers_count) {
-      STATIC.followers = d.followers_count;
-      document.getElementById("follower-badge").textContent = fmt(d.followers_count) + " abn.";
-    }
-  } catch(e) {}
-})();
 </script>
 </body>
 </html>
