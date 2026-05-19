@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
@@ -135,6 +135,12 @@ function sc2(s){if(s>=85)return["#E1F5EE","#1D9E75"];if(s>=65)return["#FAEEDA","
 function tb(t){const m={IMAGE:["#F1EFE8","#5F5E5A","Photo"],CAROUSEL_ALBUM:["#E6F1FB","#185FA5","Carrousel"],VIDEO:["#FBEAF0","#993556","Vidéo"],REELS:["#FBEAF0","#993556","Reel"]};const[bg,c,l]=m[t]||["#F1EFE8","#5F5E5A",t];return`<span class="tb" style="background:${bg};color:${c}">${l}</span>`}
 function bar(v,mx,c="#534AB7",h=6){return`<div class="bw" style="height:${h}px"><div class="bf" style="width:${Math.min(100,(v/mx)*100)}%;background:${c}"></div></div>`}
 function sbdg(s){const[bg,c]=sc2(s);return`<span class="sb" style="background:${bg};color:${c}">${s}/100</span>`}
+
+async function callAI(prompt, max_tokens=1200){
+  const r=await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,max_tokens})});
+  const d=await r.json();
+  return d.content?.filter(b=>b.type==="text").map(b=>b.text).join("")||"Erreur API";
+}
 </script><script>
 function render(){
   document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("active",b.dataset.t===S.tab));
@@ -159,18 +165,22 @@ function bind(){
     S.ac=S.ac.includes(v)?S.ac.filter(x=>x!==v):[...S.ac,v];render();
   });
   document.querySelectorAll(".sty").forEach(b=>b.onclick=()=>{S.astyle=b.dataset.s;render()});
+
   const gb=document.getElementById("genbtn");
   if(gb)gb.onclick=async()=>{
     if(!S.ac.length)return;
     S.loading.agent=true;render();
-    const sd={rcpaysage:"Style RC-Paysage : direct, luxe sobre, professionnel, ancré territoire.",mosiman:"Style Mosiman (billet France Inter) : poétique, phrases courtes suspendues, répétitions rythmiques (Il y a des lieux..., Il y a un moment...), mélancolie douce, ellipses, très musical.",hybride:"Style hybride : rythme poétique Mosiman + ancrage concret RC-Paysage (lieu, matière, projet, territoire)."};
+    const sd={
+      rcpaysage:"Style RC-Paysage : direct, luxe sobre, professionnel, ancré territoire.",
+      mosiman:"Style Mosiman (billet France Inter) : poétique, phrases courtes suspendues, répétitions rythmiques (Il y a des lieux..., Il y a un moment...), mélancolie douce, ellipses, très musical.",
+      hybride:"Style hybride : rythme poétique Mosiman + ancrage concret RC-Paysage (lieu, matière, projet, territoire)."
+    };
     try{
-      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window._akey||"","anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:`Tu es community manager pour RC-Paysage (@romaincouteaux), paysagiste DPLG Drôme/Provence. 19465 abonnés. Contenu dispo: ${S.ac.join(", ")}. ${sd[S.astyle]} Génère: 1.TITRE majuscules 2-4 mots 2.FORMAT+justification 3.LÉGENDE complète prête à publier 4.8 hashtags parmi #luxurygarden #mediterraneangarden #landscapedesign #jardinsexception #paysagedexception #provence #luxurylandscape #landscapearchitecture #paysagistesignature #outdoorlifestyle #mediterraneandesign #jardindeprovence 5.MEILLEUR MOMENT 6.SCORE/100+justification. En français.`}]})});
-      const d=await r.json();
-      S.brief=d.content?.filter(b=>b.type==="text").map(b=>b.text).join("")||"Erreur API";
-    }catch(e){S.brief="Agent IA non disponible (clé API manquante).";}
+      S.brief=await callAI(`Tu es community manager pour RC-Paysage (@romaincouteaux), paysagiste DPLG Drôme/Provence. 19465 abonnés. Contenu dispo: ${S.ac.join(", ")}. ${sd[S.astyle]} Génère: 1.TITRE majuscules 2-4 mots 2.FORMAT+justification 3.LÉGENDE complète prête à publier 4.8 hashtags parmi #luxurygarden #mediterraneangarden #landscapedesign #jardinsexception #paysagedexception #provence #luxurylandscape #landscapearchitecture #paysagistesignature #outdoorlifestyle #mediterraneandesign #jardindeprovence 5.MEILLEUR MOMENT 6.SCORE/100+justification. En français.`);
+    }catch(e){S.brief="Erreur de connexion à l'agent IA.";}
     S.briefEdit=S.brief;S.editing=false;S.loading.agent=false;render();
   };
+
   const eb=document.getElementById("editbtn");
   if(eb)eb.onclick=()=>{S.editing=true;render()};
   const ta=document.getElementById("brieftxt");
@@ -180,27 +190,30 @@ function bind(){
     S.validated.unshift({date:new Date().toLocaleDateString("fr-FR"),contenu:S.ac.join(", "),style:S.astyle,brief:S.editing?S.briefEdit:S.brief});
     S.brief="";S.briefEdit="";S.editing=false;S.ac=[];render();
   };
+
   document.querySelectorAll(".rgbtn").forEach(b=>b.onclick=async()=>{
     const part=b.dataset.p;b.textContent="…";
-    const pp={titre:`Génère uniquement un TITRE (2-4 mots majuscules) pour RC-Paysage. Contenu: ${S.ac.join(", ")}. Style ${S.astyle}. Titre seul.`,legende:`Génère uniquement une LÉGENDE Instagram pour RC-Paysage. Contenu: ${S.ac.join(", ")}. Style: ${{rcpaysage:"RC-Paysage direct luxe",mosiman:"poétique Mosiman France Inter",hybride:"hybride Mosiman+RC-Paysage"}[S.astyle]}. Légende seule prête à publier.`,hashtags:`Génère 8 hashtags pour RC-Paysage parmi: #luxurygarden #mediterraneangarden #landscapedesign #jardinsexception #paysagedexception #provence #luxurylandscape #landscapearchitecture #paysagistesignature #outdoorlifestyle #mediterraneandesign #jardindeprovence. Contenu: ${S.ac.join(", ")}. Hashtags seuls.`};
+    const pp={
+      titre:`Génère uniquement un TITRE (2-4 mots majuscules) pour RC-Paysage. Contenu: ${S.ac.join(", ")}. Style ${S.astyle}. Titre seul.`,
+      legende:`Génère uniquement une LÉGENDE Instagram pour RC-Paysage. Contenu: ${S.ac.join(", ")}. Style: ${{rcpaysage:"RC-Paysage direct luxe",mosiman:"poétique Mosiman France Inter",hybride:"hybride Mosiman+RC-Paysage"}[S.astyle]}. Légende seule prête à publier.`,
+      hashtags:`Génère 8 hashtags pour RC-Paysage parmi: #luxurygarden #mediterraneangarden #landscapedesign #jardinsexception #paysagedexception #provence #luxurylandscape #landscapearchitecture #paysagistesignature #outdoorlifestyle #mediterraneandesign #jardindeprovence. Contenu: ${S.ac.join(", ")}. Hashtags seuls.`
+    };
     try{
-      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window._akey||"","anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:pp[part]}]})});
-      const d=await r.json();
-      const txt=d.content?.filter(x=>x.type==="text").map(x=>x.text).join("")||"";
+      const txt=await callAI(pp[part],400);
       S.briefEdit+="\n\n--- "+part.toUpperCase()+" ---\n"+txt;
       if(document.getElementById("brieftxt"))document.getElementById("brieftxt").value=S.briefEdit;
     }catch(e){}
     b.textContent="↻ "+part;
   });
+
   document.querySelectorAll(".acabtn").forEach(b=>b.onclick=async()=>{
     const h=b.dataset.h;S.loading[h]=true;render();
     try{
-      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window._akey||"","anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,messages:[{role:"user",content:`Expert stratégie Instagram luxe. Analyse ${h} pour RC-Paysage (@romaincouteaux, paysagiste DPLG, 19465 abonnés, Drôme/Provence). 4 points: 1.Ce qu'ils font mieux (2-3 lignes) 2.Ce que RC-Paysage fait mieux (2-3 lignes) 3.Opportunité concrète (2 lignes) 4.Conseil actionnable immédiat (1-2 lignes). Direct, expert, français.`}]})});
-      const d=await r.json();
-      S.canal[h]=d.content?.filter(b=>b.type==="text").map(b=>b.text).join("")||"";
-    }catch(e){S.canal[h]="Agent IA non disponible.";}
+      S.canal[h]=await callAI(`Expert stratégie Instagram luxe. Analyse ${h} pour RC-Paysage (@romaincouteaux, paysagiste DPLG, 19465 abonnés, Drôme/Provence). 4 points: 1.Ce qu'ils font mieux (2-3 lignes) 2.Ce que RC-Paysage fait mieux (2-3 lignes) 3.Opportunité concrète (2 lignes) 4.Conseil actionnable immédiat (1-2 lignes). Direct, expert, français.`,800);
+    }catch(e){S.canal[h]="Erreur de connexion.";}
     S.loading[h]=false;render();
   });
+
   const addb=document.getElementById("addbtn");
   if(addb)addb.onclick=()=>{
     const inp=document.getElementById("cinp");
@@ -261,7 +274,7 @@ analyse:()=>{
 
 concurrence:()=>{
   const all=[...D.competitors,...S.ccustom.map(h=>({h,type:"Ajouté",f:"?",n:"Cliquez Analyser pour une analyse IA.",plus:"—",moins:"—"}))];
-  return`<div class="ib" style="margin-bottom:12px">ℹ️ Comptes sélectionnés par vous — concurrents, prescripteurs et références. L'analyse IA compare chaque compte avec votre positionnement.</div>
+  return`<div class="ib" style="margin-bottom:12px">ℹ️ Comptes sélectionnés par vous — concurrents, prescripteurs et références.</div>
 <div style="display:flex;gap:8px;margin-bottom:14px"><input id="cinp" placeholder="Ajouter un compte @..." style="flex:1;font-size:13px;padding:8px 12px;border-radius:8px;border:0.5px solid var(--border);background:var(--bg2);color:var(--t1)"/><button id="addbtn" class="bp" style="font-size:12px;padding:8px 14px">+ Ajouter</button></div>
 ${all.map(c=>`<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div><span style="font-weight:700;font-size:14px;color:var(--purple)">${c.h}</span> <span style="font-size:11px;color:var(--t3)">${c.type} · ${c.f}</span></div><button class="acabtn bsm" data-h="${c.h}" style="color:var(--purple)">Analyser IA</button></div><div style="font-size:12px;color:var(--t2);margin-bottom:8px">${c.n}</div><div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px"><span style="background:#E1F5EE;color:#085041;padding:2px 8px;border-radius:4px">✓ ${c.plus}</span><span style="background:#FCEBEB;color:#7A1F1F;padding:2px 8px;border-radius:4px">✗ ${c.moins}</span></div>${S.loading[c.h]?`<div class="ld">Analyse en cours…</div>`:S.canal[c.h]?`<div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--t2);line-height:1.6;white-space:pre-wrap">${S.canal[c.h]}</div>`:""}</div>`).join("")}`;
 },
