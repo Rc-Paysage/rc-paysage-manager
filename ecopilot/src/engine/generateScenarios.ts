@@ -19,6 +19,12 @@ export interface GeneratedScenarios {
  *  - BALANCED : à mi-chemin entre FAST et ECO.
  * RECOMMENDED n'est pas généré ici : il dépend de la tolérance de temps de l'utilisateur,
  * voir recommendation.ts.
+ *
+ * FAST est évalué en premier, sans baseline : `evaluateScenario` le traite alors comme sa
+ * propre référence pour l'ancrage temporel (voir timeAnchor.ts), donc `fast.anchoredDurationMin`
+ * == `trip.referenceDurationMin` quand celle-ci est exploitable. BALANCED et ECO sont ensuite
+ * évalués avec `baseline: fast`, donc ancrés sur cette même référence — chaque `ScenarioResult`
+ * porte à la fois `theoreticalDurationMin` (audit/debug) et `anchoredDurationMin` (à afficher).
  */
 export function generateScenarios(
   trip: Trip,

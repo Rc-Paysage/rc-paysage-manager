@@ -17,17 +17,37 @@ export type UncertaintyRange =
   | { status: "PROVISIONAL" }
   | { status: "CALCULATED"; lowEuros: number; highEuros: number; basisSampleCount: number };
 
+/**
+ * État de l'ancrage temporel additif (§ correctif modèle temporel) : permet de savoir si
+ * `anchoredDurationMin` reflète réellement une référence GPS/manuelle exploitable.
+ *  - APPLIED : `Trip.referenceDurationMin` était exploitable, le délai fixe a été appliqué.
+ *  - NO_REFERENCE : aucune référence exploitable (absente, nulle ou négative) — pas
+ *    d'ancrage, `anchoredDurationMin` === `theoreticalDurationMin`.
+ *  - REFERENCE_BELOW_THEORETICAL : la référence était inférieure à la durée théorique du
+ *    scénario FAST (jamais de délai négatif) — pas d'ancrage, à signaler pour diagnostic.
+ */
+export type TimeAnchorStatus = "APPLIED" | "NO_REFERENCE" | "REFERENCE_BELOW_THEORETICAL";
+
 export interface ScenarioResult {
   scenario: Scenario;
   /**
    * Durée issue du seul modèle distance/vitesse (§8 cahier des charges) — PAS une estimation
-   * réaliste de navigation. Distincte de `Trip.referenceDurationMin` (durée de référence
-   * GPS/saisie manuelle). Aucun ancrage sur `referenceDurationMin` n'est encore implémenté en
-   * V0 (§3 audit correctif — proposition en attente de validation) ; `extraTimeMin` en dérive
-   * donc pour l'instant.
+   * réaliste de navigation. Conservée pour l'audit du moteur et le Test Lab/debug ; ne pas
+   * l'afficher dans l'interface principale (voir `anchoredDurationMin`).
    */
   theoreticalDurationMin: number;
-  /** Minutes théoriques en plus par rapport au scénario FAST. 0 pour le scénario FAST lui-même. */
+  /**
+   * Durée théorique corrigée par un délai fixe additif ancré sur `Trip.referenceDurationMin`
+   * (voir `engine/timeAnchor.ts`) — c'est la durée à présenter à l'utilisateur.
+   * `anchoredDurationMin_FAST` == `referenceDurationMin` quand `timeAnchorStatus` === "APPLIED".
+   */
+  anchoredDurationMin: number;
+  /** Voir TimeAnchorStatus. Identique pour tous les scénarios d'un même trajet. */
+  timeAnchorStatus: TimeAnchorStatus;
+  /**
+   * Minutes ancrées en plus par rapport au scénario FAST (`anchoredDurationMin` - `anchoredDurationMin`
+   * du FAST). Toujours 0 pour le scénario FAST lui-même.
+   */
   extraTimeMin: number;
   fuelLiters: number;
   /**

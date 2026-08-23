@@ -8,8 +8,11 @@ export type SelectRecommendedScenarioOptions = Pick<EvaluateScenarioOptions, "sp
 /**
  * selectRecommendedScenario — implémente l'algorithme du §11 :
  * "minimiser le coût énergétique sous contrainte de temps". Parmi tous les scénarios dont la
- * durée ne dépasse pas (durée du scénario FAST + tolérance utilisateur), retourne celui de
- * coût le plus faible. En cas d'égalité de coût, retient la durée la plus courte.
+ * durée ANCRÉE (voir engine/timeAnchor.ts) ne dépasse pas (durée ancrée du scénario FAST +
+ * tolérance utilisateur), retourne celui de coût le plus faible. En cas d'égalité de coût,
+ * retient la durée ancrée la plus courte. La tolérance utilisateur est une contrainte
+ * utilisateur-facing : elle doit donc être évaluée sur la durée réaliste (ancrée), pas sur le
+ * modèle théorique distance/vitesse seul.
  *
  * Comme tous les autres scénarios, les vitesses candidates restent bornées par les contraintes
  * de sécurité/réglementation (§5 audit) — la minimisation du coût ne peut jamais les contourner.
@@ -23,7 +26,7 @@ export function selectRecommendedScenario(
 ): ScenarioResult {
   const speedConstraints = options.speedConstraints ?? DEFAULT_SPEED_CONSTRAINTS;
   const candidates = buildGlobalSpeedFactorCandidates(trip, speedConstraints);
-  const maxTheoreticalDurationMin = fast.theoreticalDurationMin + preferences.timeToleranceMin;
+  const maxAnchoredDurationMin = fast.anchoredDurationMin + preferences.timeToleranceMin;
   const evalOptions: EvaluateScenarioOptions = { speedConstraints, calibration: options.calibration, baseline: fast };
 
   const withinTolerance = candidates
@@ -31,13 +34,13 @@ export function selectRecommendedScenario(
       const scenario: Scenario = { type: "RECOMMENDED", segmentTargetSpeedsKmh: candidate.segmentTargetSpeedsKmh };
       return evaluateScenario(trip, vehicle, scenario, evalOptions);
     })
-    .filter((result) => result.theoreticalDurationMin <= maxTheoreticalDurationMin);
+    .filter((result) => result.anchoredDurationMin <= maxAnchoredDurationMin);
 
   const pool = withinTolerance.length > 0 ? withinTolerance : [fast];
 
   return pool.reduce((best, current) => {
     if (current.costEuros < best.costEuros) return current;
-    if (current.costEuros === best.costEuros && current.theoreticalDurationMin < best.theoreticalDurationMin) return current;
+    if (current.costEuros === best.costEuros && current.anchoredDurationMin < best.anchoredDurationMin) return current;
     return best;
   });
 }

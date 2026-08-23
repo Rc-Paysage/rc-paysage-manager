@@ -7,6 +7,7 @@ export * from "./recommendation";
 export * from "./confidence";
 export * from "./uncertainty";
 export * from "./energySource";
+export * from "./timeAnchor";
 export * from "./speedCandidates";
 export * from "./speedConstraints";
 export * from "./constants";

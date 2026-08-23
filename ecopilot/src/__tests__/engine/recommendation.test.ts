@@ -3,18 +3,18 @@ import { evaluateScenario } from "../../engine/evaluateScenario";
 import { selectRecommendedScenario } from "../../engine/recommendation";
 import { resolveMinSpeedKmh } from "../../engine/speedConstraints";
 import { DEFAULT_USER_PREFERENCES } from "../../types";
-import { petrolVehicle, singleHighwaySegmentTrip } from "../fixtures";
+import { anchorTestTrip, NO_FLOOR_SPEED_CONSTRAINTS, petrolVehicle, singleHighwaySegmentTrip } from "../fixtures";
 
 describe("selectRecommendedScenario", () => {
-  it("respects the user's time tolerance constraint", () => {
+  it("respects the user's time tolerance constraint (anchored durations)", () => {
     const trip = singleHighwaySegmentTrip();
     const fast = evaluateScenario(trip, petrolVehicle, { type: "FAST", segmentTargetSpeedsKmh: [130] });
     const preferences = { ...DEFAULT_USER_PREFERENCES, timeToleranceMin: 5 };
 
     const recommended = selectRecommendedScenario(trip, petrolVehicle, preferences, fast);
 
-    expect(recommended.theoreticalDurationMin).toBeLessThanOrEqual(
-      fast.theoreticalDurationMin + preferences.timeToleranceMin + 1e-6
+    expect(recommended.anchoredDurationMin).toBeLessThanOrEqual(
+      fast.anchoredDurationMin + preferences.timeToleranceMin + 1e-6
     );
   });
 
@@ -37,7 +37,7 @@ describe("selectRecommendedScenario", () => {
 
     const recommended = selectRecommendedScenario(trip, petrolVehicle, preferences, fast);
 
-    expect(recommended.theoreticalDurationMin).toBeCloseTo(fast.theoreticalDurationMin, 5);
+    expect(recommended.anchoredDurationMin).toBeCloseTo(fast.anchoredDurationMin, 5);
     expect(recommended.costEuros).toBeCloseTo(fast.costEuros, 5);
   });
 
@@ -72,6 +72,47 @@ describe("selectRecommendedScenario", () => {
     const minSafeSpeed = resolveMinSpeedKmh(segment.roadType, segment.speedLimitKmh);
     recommended.scenario.segmentTargetSpeedsKmh.forEach((speed) => {
       expect(speed).toBeGreaterThanOrEqual(minSafeSpeed);
+    });
+  });
+
+  describe("test 4 — the tolerance constraint is evaluated on anchoredDurationMin, not theoreticalDurationMin", () => {
+    it("anchors FAST on the GPS reference and bounds the recommendation by anchored minutes", () => {
+      // FAST théorique 60 min, GPS 90 min -> délai fixe +30 min appliqué à tout le trajet.
+      const trip = anchorTestTrip(90);
+      const fast = evaluateScenario(
+        trip,
+        petrolVehicle,
+        { type: "FAST", segmentTargetSpeedsKmh: [100] },
+        { speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS }
+      );
+      expect(fast.anchoredDurationMin).toBeCloseTo(90, 5);
+
+      const preferences = { ...DEFAULT_USER_PREFERENCES, timeToleranceMin: 15 };
+      const recommended = selectRecommendedScenario(trip, petrolVehicle, preferences, fast, {
+        speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS,
+      });
+
+      // La contrainte "+15 min" doit porter sur des minutes réalistes (ancrées sur le GPS),
+      // pas sur le modèle théorique seul.
+      expect(recommended.anchoredDurationMin).toBeLessThanOrEqual(fast.anchoredDurationMin + 15 + 1e-6);
+      expect(recommended.timeAnchorStatus).toBe("APPLIED");
+    });
+
+    it("reports a diverging anchoredDurationMin vs theoreticalDurationMin when a GPS delay applies", () => {
+      const trip = anchorTestTrip(90);
+      const fast = evaluateScenario(
+        trip,
+        petrolVehicle,
+        { type: "FAST", segmentTargetSpeedsKmh: [100] },
+        { speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS }
+      );
+      const preferences = { ...DEFAULT_USER_PREFERENCES, timeToleranceMin: 15 };
+      const recommended = selectRecommendedScenario(trip, petrolVehicle, preferences, fast, {
+        speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS,
+      });
+
+      expect(recommended.anchoredDurationMin).not.toBeCloseTo(recommended.theoreticalDurationMin, 5);
+      expect(recommended.anchoredDurationMin - recommended.theoreticalDurationMin).toBeCloseTo(30, 5);
     });
   });
 });

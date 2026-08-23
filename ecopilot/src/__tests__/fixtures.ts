@@ -1,4 +1,5 @@
 import type { Trip, VehicleProfile } from "../types";
+import { DEFAULT_SPEED_CONSTRAINTS, type SpeedConstraintTable } from "../engine/speedConstraints";
 
 /** Véhicule thermique simple, sans électrique, pour isoler les calculs de base des tests hybrides. */
 export const petrolVehicle: VehicleProfile = {
@@ -54,6 +55,31 @@ export function singleHighwaySegmentTrip(): Trip {
         speedLimitKmh: 130,
       },
     ],
+  };
+}
+
+/**
+ * Contraintes sans plancher, pour isoler les tests d'ancrage temporel de la logique de
+ * sécurité/vitesse minimale (déjà couverte par speedConstraints.test.ts) : n'importe quelle
+ * vitesse cible demandée est retrouvée telle quelle.
+ */
+export const NO_FLOOR_SPEED_CONSTRAINTS: SpeedConstraintTable = Object.fromEntries(
+  Object.keys(DEFAULT_SPEED_CONSTRAINTS).map((roadType) => [
+    roadType,
+    { minReasonableSpeedKmh: 0, minSpeedFactorOfLimit: 0 },
+  ])
+) as SpeedConstraintTable;
+
+/** Trajet à vitesse limite haute, pour choisir librement les vitesses cibles des tests d'ancrage temporel. */
+export function anchorTestTrip(referenceDurationMin: number): Trip {
+  return {
+    id: "trip-anchor",
+    origin: "A",
+    destination: "B",
+    distanceKm: 100,
+    referenceDurationMin,
+    date: "2026-01-01",
+    segments: [{ id: "seg-1", distanceKm: 100, roadType: "HIGHWAY", speedLimitKmh: 150 }],
   };
 }
 

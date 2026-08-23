@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { evaluateScenario } from "../../engine/evaluateScenario";
 import { capturETech145 } from "../../data/vehicles/captur-e-tech-145";
-import { petrolVehicle, pluginHybridVehicle, singleHighwaySegmentTrip } from "../fixtures";
+import {
+  anchorTestTrip,
+  NO_FLOOR_SPEED_CONSTRAINTS,
+  petrolVehicle,
+  pluginHybridVehicle,
+  singleHighwaySegmentTrip,
+} from "../fixtures";
 
 describe("evaluateScenario", () => {
   it("computes duration, fuel and cost consistently for a single segment", () => {
@@ -20,7 +26,7 @@ describe("evaluateScenario", () => {
     expect(result.electricEnergyKwh).toBe(0);
   });
 
-  it("computes extraTimeMin and savingsEuros relative to a baseline", () => {
+  it("computes extraTimeMin from anchored durations, and savingsEuros relative to a baseline", () => {
     const trip = singleHighwaySegmentTrip();
     const fast = evaluateScenario(trip, petrolVehicle, { type: "FAST", segmentTargetSpeedsKmh: [130] });
     const eco = evaluateScenario(
@@ -31,7 +37,7 @@ describe("evaluateScenario", () => {
     );
 
     expect(eco.theoreticalDurationMin).toBeGreaterThan(fast.theoreticalDurationMin);
-    expect(eco.extraTimeMin).toBeCloseTo(eco.theoreticalDurationMin - fast.theoreticalDurationMin, 5);
+    expect(eco.extraTimeMin).toBeCloseTo(eco.anchoredDurationMin - fast.anchoredDurationMin, 5);
     expect(eco.fuelLiters).toBeLessThan(fast.fuelLiters);
     expect(eco.savingsEuros).toBeGreaterThan(0);
     expect(eco.co2AvoidedGrams).toBeGreaterThan(0);
@@ -80,18 +86,80 @@ describe("evaluateScenario", () => {
     expect(result.uncertaintyRange.status).toBe("CALCULATED");
   });
 
-  describe("theoretical vs. GPS reference duration (§3 audit correctif)", () => {
-    it("exposes theoreticalDurationMin as a field distinct from Trip.referenceDurationMin", () => {
+  describe("time anchor — additive model (§ correctif modèle temporel)", () => {
+    it("test 1 — GPS reference above theoretical FAST: anchors FAST and ECO with the same fixed delay", () => {
+      // Exemple du cahier des charges : FAST théorique 60 min, GPS 90 min, ECO théorique 75 min
+      // -> délai fixe 30 min, FAST ancré 90, ECO ancré 105, extraTimeMin ECO = 15 min (pas 22.5).
+      const trip = anchorTestTrip(90);
+
+      const fast = evaluateScenario(
+        trip,
+        petrolVehicle,
+        { type: "FAST", segmentTargetSpeedsKmh: [100] }, // 100 km à 100 km/h -> 60 min théorique
+        { speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS }
+      );
+      expect(fast.theoreticalDurationMin).toBeCloseTo(60, 5);
+      expect(fast.timeAnchorStatus).toBe("APPLIED");
+      expect(fast.anchoredDurationMin).toBeCloseTo(90, 5);
+      expect(fast.extraTimeMin).toBe(0);
+
+      const eco = evaluateScenario(
+        trip,
+        petrolVehicle,
+        { type: "ECO", segmentTargetSpeedsKmh: [80] }, // 100 km à 80 km/h -> 75 min théorique
+        { speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS, baseline: fast }
+      );
+      expect(eco.theoreticalDurationMin).toBeCloseTo(75, 5);
+      expect(eco.timeAnchorStatus).toBe("APPLIED");
+      expect(eco.anchoredDurationMin).toBeCloseTo(105, 5);
+      expect(eco.extraTimeMin).toBeCloseTo(15, 5);
+    });
+
+    it("test 2 — no GPS reference: anchoredDurationMin falls back to theoreticalDurationMin, status NO_REFERENCE", () => {
+      const trip = anchorTestTrip(0);
+      const fast = evaluateScenario(
+        trip,
+        petrolVehicle,
+        { type: "FAST", segmentTargetSpeedsKmh: [100] },
+        { speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS }
+      );
+      expect(fast.timeAnchorStatus).toBe("NO_REFERENCE");
+      expect(fast.anchoredDurationMin).toBe(fast.theoreticalDurationMin);
+    });
+
+    it("test 3 — GPS reference below theoretical FAST: no negative delay, status REFERENCE_BELOW_THEORETICAL", () => {
+      const trip = anchorTestTrip(10); // largement en dessous des 60 min théoriques
+      const fast = evaluateScenario(
+        trip,
+        petrolVehicle,
+        { type: "FAST", segmentTargetSpeedsKmh: [100] },
+        { speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS }
+      );
+      expect(fast.timeAnchorStatus).toBe("REFERENCE_BELOW_THEORETICAL");
+      expect(fast.anchoredDurationMin).toBe(fast.theoreticalDurationMin);
+      expect(fast.anchoredDurationMin).toBeGreaterThanOrEqual(fast.theoreticalDurationMin); // pas de délai négatif
+    });
+
+    it("test 5 — FAST always has extraTimeMin = 0, anchored or not", () => {
+      for (const referenceDurationMin of [90, 0, 10]) {
+        const trip = anchorTestTrip(referenceDurationMin);
+        const fast = evaluateScenario(
+          trip,
+          petrolVehicle,
+          { type: "FAST", segmentTargetSpeedsKmh: [100] },
+          { speedConstraints: NO_FLOOR_SPEED_CONSTRAINTS }
+        );
+        expect(fast.extraTimeMin).toBe(0);
+      }
+    });
+
+    it("exposes theoreticalDurationMin and anchoredDurationMin as distinct fields, with no ambiguous durationMin", () => {
       const trip = singleHighwaySegmentTrip();
-      // Le trajet de test fixe referenceDurationMin à 46 min ; le modèle théorique (100km/130km/h)
-      // donne ~46.15 min : proches mais ce sont deux valeurs distinctes, non confondues.
       const result = evaluateScenario(trip, petrolVehicle, { type: "FAST", segmentTargetSpeedsKmh: [130] });
-      expect(result.theoreticalDurationMin).toBeCloseTo((100 / 130) * 60, 5);
-      expect(trip.referenceDurationMin).toBe(46);
-      expect(result.theoreticalDurationMin).not.toBe(trip.referenceDurationMin);
-      // theoreticalDurationMin n'est pas encore ancré sur referenceDurationMin en V0 :
-      // aucune anticipation d'un futur ancrage n'est faite ici.
       expect("durationMin" in result).toBe(false);
+      expect(typeof result.theoreticalDurationMin).toBe("number");
+      expect(typeof result.anchoredDurationMin).toBe("number");
+      expect(typeof result.timeAnchorStatus).toBe("string");
     });
   });
 
