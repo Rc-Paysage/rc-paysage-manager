@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generateScenarios } from "../../engine/generateScenarios";
+import { resolveMinSpeedKmh } from "../../engine/speedConstraints";
 import { petrolVehicle, mixedRoadTrip } from "../fixtures";
 
 describe("generateScenarios", () => {
@@ -35,6 +36,15 @@ describe("generateScenarios", () => {
     const { fast } = generateScenarios(trip, petrolVehicle);
     fast.scenario.segmentTargetSpeedsKmh.forEach((speed, index) => {
       expect(speed).toBe(trip.segments[index].speedLimitKmh);
+    });
+  });
+
+  it("ECO never proposes a speed below the road type's safety floor", () => {
+    const trip = mixedRoadTrip();
+    const { eco } = generateScenarios(trip, petrolVehicle);
+    eco.scenario.segmentTargetSpeedsKmh.forEach((speed, index) => {
+      const segment = trip.segments[index];
+      expect(speed).toBeGreaterThanOrEqual(resolveMinSpeedKmh(segment.roadType, segment.speedLimitKmh));
     });
   });
 });

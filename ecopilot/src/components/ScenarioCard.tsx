@@ -13,22 +13,13 @@ function formatMinutes(min: number): string {
   return hours > 0 ? `${hours} h ${minutes.toString().padStart(2, "0")}` : `${minutes} min`;
 }
 
-/**
- * Affiche une estimation, jamais comme une mesure exacte (§2.3) : une fourchette basée sur le
- * niveau de confiance plutôt qu'une fausse précision à deux décimales.
- */
-function formatConfidenceRange(value: number, confidence: number, unit: string): string {
-  const spread = value * (1 - confidence) * 0.5;
-  const low = Math.max(0, value - spread);
-  const high = value + spread;
-  if (spread < value * 0.02) {
-    return `${value.toFixed(2)} ${unit}`;
-  }
-  return `${low.toFixed(2)} – ${high.toFixed(2)} ${unit}`;
+function formatEuros(value: number): string {
+  return `${value.toFixed(2)} €`;
 }
 
 export function ScenarioCard({ result }: { result: ScenarioResult }) {
   const isRecommended = result.scenario.type === "RECOMMENDED";
+  const { uncertaintyRange } = result;
 
   return (
     <div className={`scenario-card${isRecommended ? " recommended" : ""}`}>
@@ -45,14 +36,16 @@ export function ScenarioCard({ result }: { result: ScenarioResult }) {
       )}
       <div className="scenario-metric">
         <span>Coût</span>
-        <span>{formatConfidenceRange(result.costEuros, result.confidenceScore, "€")}</span>
+        <span>
+          {uncertaintyRange.status === "CALCULATED"
+            ? `${formatEuros(uncertaintyRange.lowEuros)} – ${formatEuros(uncertaintyRange.highEuros)}`
+            : formatEuros(result.costEuros)}
+        </span>
       </div>
       {result.savingsEuros > 0.01 && (
         <div className="scenario-metric">
           <span>Économie</span>
-          <span className="savings-badge">
-            {formatConfidenceRange(result.savingsEuros, result.confidenceScore, "€")}
-          </span>
+          <span className="savings-badge">{formatEuros(result.savingsEuros)}</span>
         </div>
       )}
       <div className="scenario-metric">
@@ -64,6 +57,11 @@ export function ScenarioCard({ result }: { result: ScenarioResult }) {
         <span>{(result.co2Grams / 1000).toFixed(2)} kg</span>
       </div>
       <div className="confidence-note">Confiance : {Math.round(result.confidenceScore * 100)} %</div>
+      <div className="confidence-note">
+        {uncertaintyRange.status === "CALCULATED"
+          ? `Fourchette de coût basée sur ${uncertaintyRange.basisSampleCount} relevés comparables.`
+          : "Incertitude provisoire : pas encore assez de relevés comparables pour calculer une fourchette réelle."}
+      </div>
     </div>
   );
 }

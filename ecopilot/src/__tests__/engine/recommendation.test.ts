@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateScenario } from "../../engine/evaluateScenario";
 import { selectRecommendedScenario } from "../../engine/recommendation";
+import { resolveMinSpeedKmh } from "../../engine/speedConstraints";
 import { DEFAULT_USER_PREFERENCES } from "../../types";
 import { petrolVehicle, singleHighwaySegmentTrip } from "../fixtures";
 
@@ -56,5 +57,19 @@ describe("selectRecommendedScenario", () => {
     );
 
     expect(wide.costEuros).toBeLessThanOrEqual(narrow.costEuros);
+  });
+
+  it("never recommends a speed below the safety floor, even with an enormous time tolerance", () => {
+    const trip = singleHighwaySegmentTrip();
+    const fast = evaluateScenario(trip, petrolVehicle, { type: "FAST", segmentTargetSpeedsKmh: [130] });
+    const preferences = { ...DEFAULT_USER_PREFERENCES, timeToleranceMin: 1000 };
+
+    const recommended = selectRecommendedScenario(trip, petrolVehicle, preferences, fast);
+
+    const segment = trip.segments[0];
+    const minSafeSpeed = resolveMinSpeedKmh(segment.roadType, segment.speedLimitKmh);
+    recommended.scenario.segmentTargetSpeedsKmh.forEach((speed) => {
+      expect(speed).toBeGreaterThanOrEqual(minSafeSpeed);
+    });
   });
 });

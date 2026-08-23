@@ -17,6 +17,11 @@ export interface ConfidenceInputs {
  *  - nombre de trajets comparables disponibles ;
  *  - stabilité des erreurs de prédiction récentes (faible variance = confiance plus haute).
  * Le score final est leur moyenne, donc croît avec plus de données et plus de stabilité.
+ *
+ * Volontairement indépendant de `uncertainty.ts` (§4 audit) : ce score est un indicateur
+ * global de qualité du profil, pas une fourchette. Ne jamais déduire une fourchette de coût de
+ * ce score — voir `calculateUncertaintyRange`, qui calcule (ou refuse de calculer) une
+ * fourchette à partir des mêmes `recentPredictionErrors`, mais séparément.
  */
 export function calculateConfidenceScore(
   vehicle: Pick<VehicleProfile, "calibrationDistanceKm" | "calibrationSampleCount">,

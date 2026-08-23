@@ -2,16 +2,21 @@
  * Constantes du moteur V0. Toute valeur marquée ESTIMATED_UNCALIBRATED est un point de départ
  * pour permettre au moteur de tourner avant calibration réelle (cf. cahier des charges §9) —
  * à remplacer/affiner via le Test Lab, jamais à présenter comme une mesure exacte.
+ *
+ * Les contraintes de sécurité/réglementation par type de voie ne sont PAS ici : voir
+ * `speedConstraints.ts`. Les constantes ci-dessous ne concernent que la résolution du balayage
+ * de vitesses candidates, pas la sécurité.
  */
 
 /** Résolution du balayage de vitesses candidates : 1% de la limitation à chaque pas. */
 export const SPEED_FACTOR_STEP = 0.01;
 
-/** Vitesse minimale testée, en fraction de la limitation légale du segment. */
-export const SPEED_FACTOR_FLOOR = 0.6;
-
-/** Plancher de sécurité absolu : jamais de vitesse cible en dessous, quel que soit le segment. */
-export const MIN_SEGMENT_SPEED_KMH = 20;
+/**
+ * Borne basse du balayage de facteurs — une simple limite de boucle, PAS un mécanisme de
+ * sécurité : chaque vitesse candidate est de toute façon ramenée dans la plage sûre du segment
+ * via `clampToSafeSpeed` (speedConstraints.ts) avant tout calcul.
+ */
+export const SPEED_SWEEP_LOWER_BOUND_FACTOR = 0.4;
 
 /**
  * ESTIMATED_UNCALIBRATED — fraction de distance parcourue en tout-électrique pour un hybride

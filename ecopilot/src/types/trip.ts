@@ -1,17 +1,18 @@
 export type RoadType = "HIGHWAY" | "EXPRESSWAY" | "MAIN_ROAD" | "URBAN" | "RURAL";
 
+/**
+ * Caractéristiques INTRINSÈQUES d'une portion de route — rien qui dépende d'une stratégie de
+ * conduite. La vitesse cible et la vitesse moyenne estimée ne vivent plus ici : elles sont
+ * propres à chaque scénario et résolues au moment de l'évaluation, voir
+ * `Scenario.segmentTargetSpeedsKmh` et `engine/evaluateScenario.ts` /
+ * `engine/speedConstraints.ts` (audit V0 — un même segment est réutilisé par plusieurs
+ * scénarios, il ne peut donc pas porter "la" vitesse cible).
+ */
 export interface RouteSegment {
   id: string;
   distanceKm: number;
   roadType: RoadType;
   speedLimitKmh: number;
-  /** Vitesse visée par une stratégie donnée : décision du scénario, jamais > speedLimitKmh. */
-  targetSpeedKmh: number;
-  /**
-   * Vitesse moyenne effectivement atteignable une fois le trafic/les ralentissements pris
-   * en compte. En V0, égale à targetSpeedKmh (facteur d'atténuation = 1.0, pas de trafic modélisé).
-   */
-  estimatedAverageSpeedKmh: number;
   /** Dénivelé en mètres, positif = montée. Optionnel, non exploité en V0. */
   elevationGainM?: number;
   /** Indicateur de trafic 0 (fluide) à 1 (saturé). Optionnel, non exploité en V0. */

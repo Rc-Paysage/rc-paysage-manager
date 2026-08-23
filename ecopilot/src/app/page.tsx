@@ -28,8 +28,6 @@ function newSegment(): RouteSegment {
     distanceKm: 50,
     roadType: "HIGHWAY",
     speedLimitKmh: 130,
-    targetSpeedKmh: 130,
-    estimatedAverageSpeedKmh: 130,
   };
 }
 

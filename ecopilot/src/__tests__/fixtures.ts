@@ -9,7 +9,7 @@ export const petrolVehicle: VehicleProfile = {
   engine: "1.5 dCi",
   energyType: "PETROL",
   referenceFuelConsumptionPer100km: 6,
-  consumptionCurve: [
+  defaultConsumptionCurve: [
     { speedKmh: 50, litersPer100km: 5, electricKwhPer100km: 0, source: "ESTIMATED_UNCALIBRATED" },
     { speedKmh: 90, litersPer100km: 5.5, electricKwhPer100km: 0, source: "ESTIMATED_UNCALIBRATED" },
     { speedKmh: 130, litersPer100km: 7.4, electricKwhPer100km: 0, source: "ESTIMATED_UNCALIBRATED" },
@@ -21,6 +21,20 @@ export const petrolVehicle: VehicleProfile = {
   electricityPricePerKwh: 0.25,
   co2GramsPerLiterFuel: 2310,
   co2GramsPerKwhElectric: 60,
+};
+
+/** Véhicule hybride rechargeable, pour tester que son électricité EST une énergie externe. */
+export const pluginHybridVehicle: VehicleProfile = {
+  ...petrolVehicle,
+  id: "test-plugin-hybrid",
+  model: "Plugin Hybrid",
+  energyType: "PLUGIN_HYBRID",
+  batteryCapacityKwh: 10,
+  defaultConsumptionCurve: [
+    { speedKmh: 50, litersPer100km: 3, electricKwhPer100km: 15, source: "ESTIMATED_UNCALIBRATED" },
+    { speedKmh: 90, litersPer100km: 4, electricKwhPer100km: 14, source: "ESTIMATED_UNCALIBRATED" },
+    { speedKmh: 130, litersPer100km: 6, electricKwhPer100km: 14, source: "ESTIMATED_UNCALIBRATED" },
+  ],
 };
 
 /** Un unique segment autoroutier de 100 km limité à 130 km/h. */
@@ -38,8 +52,6 @@ export function singleHighwaySegmentTrip(): Trip {
         distanceKm: 100,
         roadType: "HIGHWAY",
         speedLimitKmh: 130,
-        targetSpeedKmh: 130,
-        estimatedAverageSpeedKmh: 130,
       },
     ],
   };
@@ -60,16 +72,12 @@ export function mixedRoadTrip(): Trip {
         distanceKm: 100,
         roadType: "HIGHWAY",
         speedLimitKmh: 130,
-        targetSpeedKmh: 130,
-        estimatedAverageSpeedKmh: 130,
       },
       {
         id: "seg-2",
         distanceKm: 20,
         roadType: "URBAN",
         speedLimitKmh: 50,
-        targetSpeedKmh: 50,
-        estimatedAverageSpeedKmh: 50,
       },
     ],
   };

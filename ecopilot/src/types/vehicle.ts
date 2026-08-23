@@ -14,6 +14,13 @@ export interface ConsumptionCurvePoint {
   source: ConsumptionCurveSource;
 }
 
+/**
+ * Contexte de conduite regroupant les types de route détaillés (RoadType) en trois familles
+ * assez larges pour qu'une courbe de consommation dédiée ait un sens statistique. Voir
+ * `engine/consumptionContext.ts` pour le mapping RoadType -> ConsumptionContext.
+ */
+export type ConsumptionContext = "URBAN" | "ROAD" | "MOTORWAY";
+
 export type EnergyType = "PETROL" | "DIESEL" | "FULL_HYBRID" | "PLUGIN_HYBRID" | "ELECTRIC";
 
 export interface VehicleProfile {
@@ -29,8 +36,18 @@ export interface VehicleProfile {
   referenceFuelConsumptionPer100km: number;
   /** Consommation électrique de référence, en kWh/100km, si applicable. */
   referenceElectricConsumptionPer100km?: number;
-  /** Courbe consommation/vitesse. Voir ConsumptionCurvePoint pour la sémantique ESTIMATED vs CALIBRATED. */
-  consumptionCurve: ConsumptionCurvePoint[];
+  /**
+   * Courbe consommation/vitesse utilisée quand aucun profil spécifique à un contexte de
+   * conduite (URBAN/ROAD/MOTORWAY) n'est disponible pour ce véhicule.
+   */
+  defaultConsumptionCurve: ConsumptionCurvePoint[];
+  /**
+   * Courbes de consommation propres à un contexte de conduite, quand elles ont été calibrées
+   * pour ce véhicule. Optionnel et partiel par conception : tant qu'un contexte n'a pas de
+   * courbe dédiée, le moteur retombe sur `defaultConsumptionCurve` plutôt que d'extrapoler ou
+   * d'inventer des valeurs (voir `engine/consumptionContext.ts`).
+   */
+  consumptionProfiles?: Partial<Record<ConsumptionContext, ConsumptionCurvePoint[]>>;
   /** Kilomètres cumulés utilisés pour la calibration de ce profil. */
   calibrationDistanceKm: number;
   /** Nombre de TestLabRecord ayant contribué à la calibration. */
@@ -38,6 +55,11 @@ export interface VehicleProfile {
   /** Score de confiance global du profil, 0 à 1. Voir engine/confidence.ts. */
   confidenceScore: number;
   fuelPricePerLiter: number;
+  /**
+   * Prix de l'électricité au kWh. Utilisé pour le coût uniquement si l'électricité de ce
+   * véhicule est une énergie achetée séparément (rechargeable / tout électrique) — voir
+   * `engine/energySource.ts`. Sans objet pour un hybride non rechargeable.
+   */
   electricityPricePerKwh: number;
   co2GramsPerLiterFuel: number;
   co2GramsPerKwhElectric: number;

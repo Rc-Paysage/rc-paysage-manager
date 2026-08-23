@@ -7,6 +7,11 @@ import type { VehicleProfile } from "../../types";
  * ESTIMATED_UNCALIBRATED tant qu'elle n'a pas été recalibrée à partir de plusieurs relevés
  * Test Lab à des vitesses différentes : le premier relevé terrain ne donne qu'une moyenne
  * globale (63,3 km/h), pas une courbe par vitesse.
+ *
+ * `consumptionProfiles` (courbes par contexte URBAN/ROAD/MOTORWAY) est volontairement absent :
+ * aucune donnée de consommation spécifique à un contexte n'existe pour ce véhicule. Le moteur
+ * retombe donc sur `defaultConsumptionCurve` pour les trois contextes tant qu'un vrai relevé
+ * calibré par contexte n'est pas disponible (§2 audit — ne pas inventer de nouvelles données).
  */
 export const capturETech145: VehicleProfile = {
   id: "captur-e-tech-145-2024",
@@ -17,7 +22,7 @@ export const capturETech145: VehicleProfile = {
   energyType: "FULL_HYBRID",
   referenceFuelConsumptionPer100km: 5.5,
   referenceElectricConsumptionPer100km: 7.0,
-  consumptionCurve: [
+  defaultConsumptionCurve: [
     { speedKmh: 30, litersPer100km: 4.2, electricKwhPer100km: 8.5, source: "ESTIMATED_UNCALIBRATED" },
     { speedKmh: 50, litersPer100km: 4.6, electricKwhPer100km: 7.5, source: "ESTIMATED_UNCALIBRATED" },
     { speedKmh: 70, litersPer100km: 5.0, electricKwhPer100km: 7.0, source: "ESTIMATED_UNCALIBRATED" },
