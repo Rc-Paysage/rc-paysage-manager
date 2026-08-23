@@ -12,7 +12,7 @@ describe("evaluateScenario", () => {
     });
 
     // 100 km à 130 km/h -> ~46.15 min
-    expect(result.durationMin).toBeCloseTo((100 / 130) * 60, 5);
+    expect(result.theoreticalDurationMin).toBeCloseTo((100 / 130) * 60, 5);
     // Courbe: 7.4 L/100km à 130 km/h -> 7.4 L sur 100 km
     expect(result.fuelLiters).toBeCloseTo(7.4, 5);
     expect(result.costEuros).toBeCloseTo(7.4 * petrolVehicle.fuelPricePerLiter, 5);
@@ -30,8 +30,8 @@ describe("evaluateScenario", () => {
       { baseline: fast }
     );
 
-    expect(eco.durationMin).toBeGreaterThan(fast.durationMin);
-    expect(eco.extraTimeMin).toBeCloseTo(eco.durationMin - fast.durationMin, 5);
+    expect(eco.theoreticalDurationMin).toBeGreaterThan(fast.theoreticalDurationMin);
+    expect(eco.extraTimeMin).toBeCloseTo(eco.theoreticalDurationMin - fast.theoreticalDurationMin, 5);
     expect(eco.fuelLiters).toBeLessThan(fast.fuelLiters);
     expect(eco.savingsEuros).toBeGreaterThan(0);
     expect(eco.co2AvoidedGrams).toBeGreaterThan(0);
@@ -43,17 +43,17 @@ describe("evaluateScenario", () => {
       type: "FAST",
       segmentTargetSpeedsKmh: [200], // volontairement au-dessus de la limite (130)
     });
-    expect(result.durationMin).toBeCloseTo((100 / 130) * 60, 5);
+    expect(result.theoreticalDurationMin).toBeCloseTo((100 / 130) * 60, 5);
   });
 
-  it("never applies a target speed below the road type's reasonable safety floor", () => {
+  it("never applies a target speed below the road type's operational safety floor", () => {
     const trip = singleHighwaySegmentTrip();
     const result = evaluateScenario(trip, petrolVehicle, {
       type: "ECO",
       segmentTargetSpeedsKmh: [5], // volontairement très en dessous du plancher autoroute
     });
     // A 90 km/h (plancher par défaut autoroute) le trajet dure au plus (100/90)*60 minutes.
-    expect(result.durationMin).toBeLessThanOrEqual((100 / 90) * 60 + 1e-6);
+    expect(result.theoreticalDurationMin).toBeLessThanOrEqual((100 / 90) * 60 + 1e-6);
   });
 
   it("throws if the scenario does not provide one target speed per segment", () => {
@@ -80,7 +80,22 @@ describe("evaluateScenario", () => {
     expect(result.uncertaintyRange.status).toBe("CALCULATED");
   });
 
-  describe("hybrid energy accounting (§3 audit)", () => {
+  describe("theoretical vs. GPS reference duration (§3 audit correctif)", () => {
+    it("exposes theoreticalDurationMin as a field distinct from Trip.referenceDurationMin", () => {
+      const trip = singleHighwaySegmentTrip();
+      // Le trajet de test fixe referenceDurationMin à 46 min ; le modèle théorique (100km/130km/h)
+      // donne ~46.15 min : proches mais ce sont deux valeurs distinctes, non confondues.
+      const result = evaluateScenario(trip, petrolVehicle, { type: "FAST", segmentTargetSpeedsKmh: [130] });
+      expect(result.theoreticalDurationMin).toBeCloseTo((100 / 130) * 60, 5);
+      expect(trip.referenceDurationMin).toBe(46);
+      expect(result.theoreticalDurationMin).not.toBe(trip.referenceDurationMin);
+      // theoreticalDurationMin n'est pas encore ancré sur referenceDurationMin en V0 :
+      // aucune anticipation d'un futur ancrage n'est faite ici.
+      expect("durationMin" in result).toBe(false);
+    });
+  });
+
+  describe("hybrid energy accounting (§3 audit initial / §1 audit correctif)", () => {
     it("excludes electric kWh from cost and CO2 for a non-rechargeable full hybrid", () => {
       const trip = singleHighwaySegmentTrip();
       const result = evaluateScenario(trip, capturETech145, { type: "FAST", segmentTargetSpeedsKmh: [130] });
@@ -88,6 +103,14 @@ describe("evaluateScenario", () => {
       expect(result.electricEnergyKwh).toBeGreaterThan(0);
       expect(result.costEuros).toBeCloseTo(result.fuelLiters * capturETech145.fuelPricePerLiter, 5);
       expect(result.co2Grams).toBeCloseTo(result.fuelLiters * capturETech145.co2GramsPerLiterFuel, 5);
+    });
+
+    it("computes fuelLiters for the full hybrid over the segment's entire distance", () => {
+      const trip = singleHighwaySegmentTrip();
+      const result = evaluateScenario(trip, capturETech145, { type: "FAST", segmentTargetSpeedsKmh: [130] });
+      // Courbe Captur à 130 km/h : 7.4 L/100km, sur 100 km entiers -> 7.4 L, quel que soit
+      // electricDistanceKm (§1 audit correctif).
+      expect(result.fuelLiters).toBeCloseTo(7.4, 5);
     });
 
     it("includes electric kWh in cost and CO2 for a plugin hybrid", () => {

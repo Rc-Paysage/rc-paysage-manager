@@ -26,7 +26,7 @@ export function ScenarioCard({ result }: { result: ScenarioResult }) {
       <div className="scenario-title">{LABELS[result.scenario.type]}</div>
       <div className="scenario-metric">
         <span>Temps</span>
-        <span>{formatMinutes(result.durationMin)}</span>
+        <span>{formatMinutes(result.theoreticalDurationMin)}</span>
       </div>
       {result.extraTimeMin > 0.5 && (
         <div className="scenario-metric">

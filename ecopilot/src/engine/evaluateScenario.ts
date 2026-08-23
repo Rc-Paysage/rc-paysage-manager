@@ -19,15 +19,22 @@ export interface EvaluateScenarioOptions {
  *
  * Sécurité avant économie (§2.1) : chaque vitesse cible demandée par le scénario est ramenée
  * dans la plage sûre et légale du segment via `clampToSafeSpeed` avant tout calcul — jamais
- * au-dessus de la limitation légale, jamais en dessous du plancher raisonnable/réglementaire du
- * type de voie (§5 audit).
+ * au-dessus de la limitation légale, jamais en dessous du plancher opérationnel du type de voie
+ * (voir speedConstraints.ts — un plancher produit/sécurité configurable, PAS une règle légale).
  *
- * Comptabilité énergétique (§3 audit) : le kWh électrique n'est ajouté au coût et au CO2 que
- * si `isElectricityExternalEnergy(vehicle)` — c'est-à-dire uniquement pour un hybride
- * rechargeable ou un véhicule tout électrique. Pour un hybride non rechargeable, cette énergie
- * provient du carburant déjà comptabilisé ; elle reste néanmoins présente dans le résultat pour
- * l'analyse énergétique et la calibration (electricEnergyKwh, electricDistanceKm,
- * energyRecoveredKwh).
+ * Comptabilité énergétique (§3 audit initial / §1 audit correctif) : le kWh électrique n'est
+ * ajouté au coût et au CO2 que si `isElectricityExternalEnergy(vehicle)` — uniquement pour un
+ * hybride rechargeable ou un véhicule tout électrique. Pour un hybride non rechargeable,
+ * `fuelLiters` porte déjà sur la distance ENTIÈRE du segment (la courbe de consommation
+ * représente la consommation globale du véhicule) ; `electricEnergyKwh`/`electricDistanceKm`
+ * restent dans le résultat comme métriques analytiques/de calibration uniquement, jamais
+ * soustraites du carburant.
+ *
+ * `theoreticalDurationMin` (§3 audit correctif) : durée issue du seul modèle distance/vitesse,
+ * PAS une estimation réaliste de navigation — voir `Trip.referenceDurationMin` pour la durée de
+ * référence GPS/saisie manuelle. Aucun ancrage sur `referenceDurationMin` n'est encore
+ * implémenté en V0 (proposition en attente de validation) ; `extraTimeMin`/`savingsEuros`
+ * restent donc calculés à partir de `theoreticalDurationMin` pour l'instant.
  */
 export function evaluateScenario(
   trip: Trip,
@@ -41,11 +48,10 @@ export function evaluateScenario(
 
   const speedConstraints = options.speedConstraints ?? DEFAULT_SPEED_CONSTRAINTS;
 
-  let durationMin = 0;
+  let theoreticalDurationMin = 0;
   let fuelLiters = 0;
   let electricEnergyKwh = 0;
   let electricDistanceKm = 0;
-  let energyRecoveredKwh = 0;
   let anyUncalibrated = false;
 
   trip.segments.forEach((segment, index) => {
@@ -58,11 +64,10 @@ export function evaluateScenario(
     );
 
     const result = estimateConsumption(segment, safeSpeedKmh, vehicle);
-    durationMin += result.durationMin;
+    theoreticalDurationMin += result.durationMin;
     fuelLiters += result.fuelLiters;
     electricEnergyKwh += result.electricEnergyKwh;
     electricDistanceKm += result.electricDistanceKm;
-    energyRecoveredKwh += result.energyRecoveredKwh;
     anyUncalibrated = anyUncalibrated || result.isUncalibrated;
   });
 
@@ -74,7 +79,9 @@ export function evaluateScenario(
     fuelLiters * vehicle.co2GramsPerLiterFuel +
     (electricIsExternalEnergy ? electricEnergyKwh * vehicle.co2GramsPerKwhElectric : 0);
 
-  const extraTimeMin = options.baseline ? durationMin - options.baseline.durationMin : 0;
+  const extraTimeMin = options.baseline
+    ? theoreticalDurationMin - options.baseline.theoreticalDurationMin
+    : 0;
   const savingsEuros = options.baseline ? options.baseline.costEuros - costEuros : 0;
   const co2AvoidedGrams = options.baseline ? options.baseline.co2Grams - co2Grams : 0;
 
@@ -83,12 +90,11 @@ export function evaluateScenario(
 
   return {
     scenario,
-    durationMin,
+    theoreticalDurationMin,
     extraTimeMin,
     fuelLiters,
     electricEnergyKwh,
     electricDistanceKm,
-    energyRecoveredKwh,
     costEuros,
     savingsEuros,
     co2Grams,

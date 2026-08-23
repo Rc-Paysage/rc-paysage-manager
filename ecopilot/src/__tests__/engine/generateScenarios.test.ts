@@ -25,8 +25,8 @@ describe("generateScenarios", () => {
     const trip = mixedRoadTrip();
     const { fast, balanced, eco } = generateScenarios(trip, petrolVehicle);
 
-    expect(balanced.durationMin).toBeGreaterThanOrEqual(fast.durationMin);
-    expect(balanced.durationMin).toBeLessThanOrEqual(eco.durationMin);
+    expect(balanced.theoreticalDurationMin).toBeGreaterThanOrEqual(fast.theoreticalDurationMin);
+    expect(balanced.theoreticalDurationMin).toBeLessThanOrEqual(eco.theoreticalDurationMin);
     expect(balanced.costEuros).toBeLessThanOrEqual(fast.costEuros);
     expect(balanced.costEuros).toBeGreaterThanOrEqual(eco.costEuros);
   });

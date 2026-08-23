@@ -13,7 +13,9 @@ describe("selectRecommendedScenario", () => {
 
     const recommended = selectRecommendedScenario(trip, petrolVehicle, preferences, fast);
 
-    expect(recommended.durationMin).toBeLessThanOrEqual(fast.durationMin + preferences.timeToleranceMin + 1e-6);
+    expect(recommended.theoreticalDurationMin).toBeLessThanOrEqual(
+      fast.theoreticalDurationMin + preferences.timeToleranceMin + 1e-6
+    );
   });
 
   it("minimizes cost among scenarios within the time tolerance", () => {
@@ -35,7 +37,7 @@ describe("selectRecommendedScenario", () => {
 
     const recommended = selectRecommendedScenario(trip, petrolVehicle, preferences, fast);
 
-    expect(recommended.durationMin).toBeCloseTo(fast.durationMin, 5);
+    expect(recommended.theoreticalDurationMin).toBeCloseTo(fast.theoreticalDurationMin, 5);
     expect(recommended.costEuros).toBeCloseTo(fast.costEuros, 5);
   });
 

@@ -19,14 +19,28 @@ describe("estimateConsumption", () => {
     expect(result.fuelLiters).toBeGreaterThan(0);
   });
 
-  it("splits distance between fuel and electric for a full hybrid vehicle", () => {
-    const result = estimateConsumption(urbanSegment, 50, capturETech145);
-    expect(result.electricDistanceKm).toBeGreaterThan(0);
-    expect(result.electricDistanceKm).toBeLessThan(urbanSegment.distanceKm);
-    expect(result.fuelLiters).toBeGreaterThan(0);
-    expect(result.electricEnergyKwh).toBeGreaterThan(0);
-    expect(result.energyRecoveredKwh).toBeGreaterThan(0);
-    expect(result.energyRecoveredKwh).toBeLessThan(result.electricEnergyKwh);
+  describe("full hybrid fuel model (§1 audit correctif)", () => {
+    it("computes fuelLiters over the segment's FULL distance, not distance minus electricDistanceKm", () => {
+      const result = estimateConsumption(urbanSegment, 50, capturETech145);
+      // La courbe à 50 km/h vaut 4.6 L/100km pour le Captur : sur 10 km entiers -> 0.46 L.
+      // Si electricDistanceKm était retranchée (ancien bug), fuelLiters serait strictement plus bas.
+      expect(result.fuelLiters).toBeCloseTo((urbanSegment.distanceKm * 4.6) / 100, 5);
+    });
+
+    it("still reports electricDistanceKm/electricEnergyKwh as analytical metrics, without reducing fuelLiters", () => {
+      const result = estimateConsumption(urbanSegment, 50, capturETech145);
+      expect(result.electricDistanceKm).toBeGreaterThan(0);
+      expect(result.electricDistanceKm).toBeLessThan(urbanSegment.distanceKm);
+      expect(result.electricEnergyKwh).toBeGreaterThan(0);
+      // fuelLiters ne doit PAS correspondre à (distance - electricDistanceKm) * conso/100.
+      const wrongFuelLiters = ((urbanSegment.distanceKm - result.electricDistanceKm) * 4.6) / 100;
+      expect(result.fuelLiters).not.toBeCloseTo(wrongFuelLiters, 5);
+    });
+
+    it("does not predict energyRecoveredKwh from a fixed ratio — the field no longer exists on the result", () => {
+      const result = estimateConsumption(urbanSegment, 50, capturETech145);
+      expect("energyRecoveredKwh" in result).toBe(false);
+    });
   });
 
   it("flags hybrid results as uncalibrated by default", () => {
@@ -47,17 +61,14 @@ describe("estimateConsumption", () => {
 
   it("falls back to defaultConsumptionCurve when no context-specific profile exists", () => {
     // capturETech145 n'a pas de consumptionProfiles : tous les contextes retombent sur la même
-    // courbe par défaut. À vitesse égale, le litre/km sur la part carburant est donc identique
-    // en ville et sur autoroute — seule la répartition électrique par roadType diffère.
+    // courbe par défaut. À vitesse égale, le litre/km est donc identique en ville et sur
+    // autoroute — seule la répartition électrique (analytique) par roadType diffère.
     const highwaySegment: RouteSegment = { id: "seg-hw", distanceKm: 10, roadType: "HIGHWAY", speedLimitKmh: 130 };
     const urbanResult = estimateConsumption(urbanSegment, 50, capturETech145);
     const highwayResult = estimateConsumption(highwaySegment, 50, capturETech145);
 
-    const urbanFuelDistanceKm = urbanSegment.distanceKm - urbanResult.electricDistanceKm;
-    const highwayFuelDistanceKm = highwaySegment.distanceKm - highwayResult.electricDistanceKm;
-
-    expect(urbanResult.fuelLiters / urbanFuelDistanceKm).toBeCloseTo(
-      highwayResult.fuelLiters / highwayFuelDistanceKm,
+    expect(urbanResult.fuelLiters / urbanSegment.distanceKm).toBeCloseTo(
+      highwayResult.fuelLiters / highwaySegment.distanceKm,
       5
     );
   });

@@ -19,19 +19,27 @@ export type UncertaintyRange =
 
 export interface ScenarioResult {
   scenario: Scenario;
-  durationMin: number;
-  /** Minutes en plus par rapport au scénario FAST. 0 pour le scénario FAST lui-même. */
+  /**
+   * Durée issue du seul modèle distance/vitesse (§8 cahier des charges) — PAS une estimation
+   * réaliste de navigation. Distincte de `Trip.referenceDurationMin` (durée de référence
+   * GPS/saisie manuelle). Aucun ancrage sur `referenceDurationMin` n'est encore implémenté en
+   * V0 (§3 audit correctif — proposition en attente de validation) ; `extraTimeMin` en dérive
+   * donc pour l'instant.
+   */
+  theoreticalDurationMin: number;
+  /** Minutes théoriques en plus par rapport au scénario FAST. 0 pour le scénario FAST lui-même. */
   extraTimeMin: number;
   fuelLiters: number;
   /**
-   * Énergie électrique utilisée (kWh), conservée pour l'analyse énergétique et la calibration
-   * même quand elle ne représente pas une énergie achetée séparément (hybride non rechargeable
-   * — voir engine/energySource.ts). Ne pas additionner à costEuros/co2Grams sans vérifier
-   * `isElectricityExternalEnergy(vehicle)`.
+   * Énergie électrique utilisée (kWh) — métrique ANALYTIQUE/de calibration uniquement pour un
+   * hybride non rechargeable (elle ne représente pas une énergie achetée séparément — voir
+   * engine/energySource.ts) et n'est jamais soustraite de `fuelLiters` (§1 audit correctif : la
+   * courbe de consommation couvre déjà la distance entière du segment). Ne pas additionner à
+   * costEuros/co2Grams sans vérifier `isElectricityExternalEnergy(vehicle)`.
    */
   electricEnergyKwh: number;
+  /** Distance parcourue en tout-électrique — métrique ANALYTIQUE/de calibration uniquement, ne réduit jamais fuelLiters. */
   electricDistanceKm: number;
-  energyRecoveredKwh: number;
   costEuros: number;
   /** Économie en euros par rapport au scénario FAST. Peut être négative (FAST = 0). */
   savingsEuros: number;

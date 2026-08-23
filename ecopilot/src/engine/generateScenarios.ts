@@ -1,6 +1,6 @@
 import type { Scenario, ScenarioResult, Trip, VehicleProfile } from "../types";
 import { evaluateScenario, type EvaluateScenarioOptions } from "./evaluateScenario";
-import { buildSpeedCandidates } from "./speedCandidates";
+import { buildGlobalSpeedFactorCandidates } from "./speedCandidates";
 import { DEFAULT_SPEED_CONSTRAINTS } from "./speedConstraints";
 
 export type GenerateScenariosOptions = Pick<EvaluateScenarioOptions, "speedConstraints" | "calibration">;
@@ -26,7 +26,7 @@ export function generateScenarios(
   options: GenerateScenariosOptions = {}
 ): GeneratedScenarios {
   const speedConstraints = options.speedConstraints ?? DEFAULT_SPEED_CONSTRAINTS;
-  const candidates = buildSpeedCandidates(trip, speedConstraints);
+  const candidates = buildGlobalSpeedFactorCandidates(trip, speedConstraints);
   if (candidates.length === 0) {
     throw new Error("Aucune vitesse candidate n'a pu être générée pour ce trajet.");
   }

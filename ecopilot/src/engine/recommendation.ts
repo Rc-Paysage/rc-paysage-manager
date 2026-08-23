@@ -1,6 +1,6 @@
 import type { Scenario, ScenarioResult, Trip, UserPreferences, VehicleProfile } from "../types";
 import { evaluateScenario, type EvaluateScenarioOptions } from "./evaluateScenario";
-import { buildSpeedCandidates } from "./speedCandidates";
+import { buildGlobalSpeedFactorCandidates } from "./speedCandidates";
 import { DEFAULT_SPEED_CONSTRAINTS } from "./speedConstraints";
 
 export type SelectRecommendedScenarioOptions = Pick<EvaluateScenarioOptions, "speedConstraints" | "calibration">;
@@ -22,8 +22,8 @@ export function selectRecommendedScenario(
   options: SelectRecommendedScenarioOptions = {}
 ): ScenarioResult {
   const speedConstraints = options.speedConstraints ?? DEFAULT_SPEED_CONSTRAINTS;
-  const candidates = buildSpeedCandidates(trip, speedConstraints);
-  const maxDurationMin = fast.durationMin + preferences.timeToleranceMin;
+  const candidates = buildGlobalSpeedFactorCandidates(trip, speedConstraints);
+  const maxTheoreticalDurationMin = fast.theoreticalDurationMin + preferences.timeToleranceMin;
   const evalOptions: EvaluateScenarioOptions = { speedConstraints, calibration: options.calibration, baseline: fast };
 
   const withinTolerance = candidates
@@ -31,13 +31,13 @@ export function selectRecommendedScenario(
       const scenario: Scenario = { type: "RECOMMENDED", segmentTargetSpeedsKmh: candidate.segmentTargetSpeedsKmh };
       return evaluateScenario(trip, vehicle, scenario, evalOptions);
     })
-    .filter((result) => result.durationMin <= maxDurationMin);
+    .filter((result) => result.theoreticalDurationMin <= maxTheoreticalDurationMin);
 
   const pool = withinTolerance.length > 0 ? withinTolerance : [fast];
 
   return pool.reduce((best, current) => {
     if (current.costEuros < best.costEuros) return current;
-    if (current.costEuros === best.costEuros && current.durationMin < best.durationMin) return current;
+    if (current.costEuros === best.costEuros && current.theoreticalDurationMin < best.theoreticalDurationMin) return current;
     return best;
   });
 }

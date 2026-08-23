@@ -22,6 +22,13 @@ export const SPEED_SWEEP_LOWER_BOUND_FACTOR = 0.4;
  * ESTIMATED_UNCALIBRATED — fraction de distance parcourue en tout-électrique pour un hybride
  * "full hybrid" selon le type de route. Un hybride récupère et utilise plus l'électrique en
  * roulage urbain saccadé qu'à vitesse stabilisée sur autoroute. À recalibrer par véhicule.
+ *
+ * IMPORTANT (§1 audit V0 — correctif) : cette fraction sert uniquement à ESTIMER
+ * electricDistanceKm/electricEnergyKwh comme métriques analytiques/de calibration. Pour un
+ * FULL_HYBRID non rechargeable, `defaultConsumptionCurve.litersPer100km` représente déjà la
+ * consommation carburant globale du véhicule sur l'intégralité de la distance — cette fraction
+ * ne doit JAMAIS servir à retrancher des kilomètres du calcul du carburant (voir
+ * estimateConsumption.ts).
  */
 export const ELECTRIC_DISTANCE_FRACTION_BY_ROAD_TYPE: Record<string, number> = {
   URBAN: 0.4,
@@ -30,9 +37,3 @@ export const ELECTRIC_DISTANCE_FRACTION_BY_ROAD_TYPE: Record<string, number> = {
   EXPRESSWAY: 0.05,
   HIGHWAY: 0.02,
 };
-
-/**
- * ESTIMATED_UNCALIBRATED — part de l'énergie électrique consommée sur un segment qui provient
- * de récupération (freinage régénératif) plutôt que du réseau/de la charge initiale.
- */
-export const REGEN_RECOVERY_RATIO = 0.35;

@@ -89,7 +89,7 @@ export default function HomePage() {
       vehicleId: vehicle.id,
       tripId: trip.id,
       distanceKm,
-      predictedDurationMin: recommended.durationMin,
+      predictedDurationMin: recommended.theoreticalDurationMin,
       predictedFuelLiters: recommended.fuelLiters,
       predictedElectricEnergyKwh: recommended.electricEnergyKwh,
       confidenceScore: recommended.confidenceScore,
