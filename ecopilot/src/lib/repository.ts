@@ -1,4 +1,4 @@
-import type { TestLabRecord, Trip, VehicleProfile } from "../types";
+import type { CalibrationObservation, CalibrationProposal, TestLabRecord, Trip, VehicleProfile } from "../types";
 
 /**
  * Interface de persistance générique. La V0 utilise localStorage (LocalStorageRepository) ;
@@ -52,3 +52,15 @@ export class LocalStorageRepository<T extends { id: string }> implements Reposit
 export const vehicleRepository = new LocalStorageRepository<VehicleProfile>("ecopilot.vehicles");
 export const tripRepository = new LocalStorageRepository<Trip>("ecopilot.trips");
 export const testLabRepository = new LocalStorageRepository<TestLabRecord>("ecopilot.testlab");
+
+/**
+ * Persistance du Calibration Engine (§17 mission calibration) : observations et propositions
+ * stockées séparément, via la même abstraction Repository — le moteur de calibration ne connaît
+ * pas localStorage, il reçoit/retourne des données pures (voir engine/calibration/).
+ */
+export const calibrationObservationRepository = new LocalStorageRepository<CalibrationObservation>(
+  "ecopilot.calibrationObservations"
+);
+export const calibrationProposalRepository = new LocalStorageRepository<CalibrationProposal>(
+  "ecopilot.calibrationProposals"
+);

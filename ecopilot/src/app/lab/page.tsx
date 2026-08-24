@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { TestLabRecord } from "../../types";
+import type { ConsumptionContext, RouteHomogeneity, TestLabRecord, TrafficLevel } from "../../types";
 import { capturETech145 } from "../../data/vehicles/captur-e-tech-145";
-import { vehicleRepository, testLabRepository } from "../../lib/repository";
+import { vehicleRepository, testLabRepository, calibrationObservationRepository } from "../../lib/repository";
 import { createId } from "../../lib/id";
 import { loadLastPrediction } from "../../lib/lastPrediction";
 import { calculateConfidenceScore } from "../../engine/confidence";
@@ -13,9 +13,15 @@ interface FormState {
   durationMin: string;
   averageSpeedKmh: string;
   actualFuelPer100km: string;
+  roadContext: ConsumptionContext | "";
+  routeHomogeneity: RouteHomogeneity;
+  targetSpeedKmh: string;
   electricDistanceKm: string;
   energyRecoveredKwh: string;
   temperatureC: string;
+  elevationGainM: string;
+  trafficLevel: TrafficLevel | "";
+  weather: string;
   tripType: string;
   comment: string;
 }
@@ -25,9 +31,15 @@ const EMPTY_FORM: FormState = {
   durationMin: "",
   averageSpeedKmh: "",
   actualFuelPer100km: "",
+  roadContext: "",
+  routeHomogeneity: "UNKNOWN",
+  targetSpeedKmh: "",
   electricDistanceKm: "",
   energyRecoveredKwh: "",
   temperatureC: "",
+  elevationGainM: "",
+  trafficLevel: "",
+  weather: "",
   tripType: "",
   comment: "",
 };
@@ -40,7 +52,7 @@ export default function TestLabPage() {
     setRecords(testLabRepository.getAll().sort((a, b) => (a.date < b.date ? 1 : -1)));
   }, []);
 
-  function set<K extends keyof FormState>(key: K, value: string) {
+  function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -87,6 +99,30 @@ export default function TestLabPage() {
 
     testLabRepository.save(record);
 
+    // Observation dédiée au Calibration Engine (§14 mission calibration) — distincte du
+    // TestLabRecord ci-dessus, jamais utilisée automatiquement pour modifier une courbe.
+    calibrationObservationRepository.save({
+      id: createId("calib-obs"),
+      vehicleId: capturETech145.id,
+      tripId: lastPrediction?.tripId,
+      timestamp: record.date,
+      distanceKm,
+      durationMin: Number(form.durationMin) || 0,
+      averageSpeedKmh: Number(form.averageSpeedKmh) || 0,
+      observedFuelConsumptionLPer100km: actualFuelPer100km,
+      roadContext: form.roadContext || undefined,
+      routeHomogeneity: form.routeHomogeneity,
+      targetSpeedKmh: form.targetSpeedKmh ? Number(form.targetSpeedKmh) : undefined,
+      electricDistanceKm: form.electricDistanceKm ? Number(form.electricDistanceKm) : undefined,
+      energyRecoveredKwh: form.energyRecoveredKwh ? Number(form.energyRecoveredKwh) : undefined,
+      temperatureC: form.temperatureC ? Number(form.temperatureC) : undefined,
+      elevationGainM: form.elevationGainM ? Number(form.elevationGainM) : undefined,
+      trafficLevel: form.trafficLevel || undefined,
+      weather: form.weather || undefined,
+      notes: form.comment || undefined,
+      observationScope: "CANDIDATE",
+    });
+
     const vehicle = vehicleRepository.getById(capturETech145.id) ?? capturETech145;
     const updatedVehicle = {
       ...vehicle,
@@ -106,7 +142,7 @@ export default function TestLabPage() {
         <h2>EcoPilot Test Lab</h2>
         <p style={{ fontSize: "0.85rem", color: "var(--color-muted)" }}>
           Enregistrez ce que vous avez réellement observé après un trajet pour affiner les
-          prochaines prédictions.
+          prochaines prédictions et alimenter la calibration terrain.
         </p>
         <form onSubmit={handleSubmit}>
           <div className="field-row">
@@ -136,6 +172,44 @@ export default function TestLabPage() {
               />
             </div>
           </div>
+
+          <div className="field-row">
+            <div>
+              <label htmlFor="roadContext">Contexte principal</label>
+              <select
+                id="roadContext"
+                value={form.roadContext}
+                onChange={(e) => set("roadContext", e.target.value as ConsumptionContext | "")}
+                required
+              >
+                <option value="">—</option>
+                <option value="URBAN">Ville</option>
+                <option value="ROAD">Route</option>
+                <option value="MOTORWAY">Autoroute</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="routeHomogeneity">Nature du trajet</label>
+              <select
+                id="routeHomogeneity"
+                value={form.routeHomogeneity}
+                onChange={(e) => set("routeHomogeneity", e.target.value as RouteHomogeneity)}
+              >
+                <option value="HOMOGENEOUS">Homogène (un seul contexte dominant)</option>
+                <option value="MIXED">Mixte (plusieurs contextes)</option>
+                <option value="UNKNOWN">Je ne sais pas</option>
+              </select>
+            </div>
+          </div>
+
+          <label htmlFor="targetSpeedKmh">Vitesse cible/stabilisée (km/h) — si connue</label>
+          <input
+            id="targetSpeedKmh"
+            type="number"
+            value={form.targetSpeedKmh}
+            onChange={(e) => set("targetSpeedKmh", e.target.value)}
+          />
+
           <div className="field-row">
             <div>
               <label htmlFor="electricDistanceKm">Distance électrique (km)</label>
@@ -152,10 +226,27 @@ export default function TestLabPage() {
               <input id="temperatureC" type="number" value={form.temperatureC} onChange={(e) => set("temperatureC", e.target.value)} />
             </div>
             <div>
-              <label htmlFor="tripType">Type de trajet</label>
-              <input id="tripType" value={form.tripType} onChange={(e) => set("tripType", e.target.value)} placeholder="Autoroute, mixte..." />
+              <label htmlFor="elevationGainM">Dénivelé (m)</label>
+              <input id="elevationGainM" type="number" value={form.elevationGainM} onChange={(e) => set("elevationGainM", e.target.value)} />
             </div>
           </div>
+          <div className="field-row">
+            <div>
+              <label htmlFor="trafficLevel">Trafic</label>
+              <select id="trafficLevel" value={form.trafficLevel} onChange={(e) => set("trafficLevel", e.target.value as TrafficLevel | "")}>
+                <option value="">—</option>
+                <option value="LOW">Fluide</option>
+                <option value="MEDIUM">Modéré</option>
+                <option value="HIGH">Dense</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="weather">Météo</label>
+              <input id="weather" value={form.weather} onChange={(e) => set("weather", e.target.value)} placeholder="Pluie, vent..." />
+            </div>
+          </div>
+          <label htmlFor="tripType">Type de trajet</label>
+          <input id="tripType" value={form.tripType} onChange={(e) => set("tripType", e.target.value)} placeholder="Autoroute, mixte..." />
           <label htmlFor="comment">Commentaire</label>
           <input id="comment" value={form.comment} onChange={(e) => set("comment", e.target.value)} />
           <button type="submit" className="primary">
