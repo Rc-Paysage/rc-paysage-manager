@@ -199,3 +199,131 @@ button.secondary {
 .error-bad {
   color: #b45309;
 }
+
+/* ---- Mode simple ---- */
+.app-header-title {
+  text-decoration: none;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin: 12px 0 0;
+}
+
+.hint a {
+  color: var(--color-accent);
+}
+
+button.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tolerance-options button.tolerance-option {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.tolerance-options button.tolerance-option.selected {
+  background: var(--color-accent);
+  color: white;
+}
+
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+a.button {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+a.button.primary {
+  background: var(--color-accent);
+  color: white;
+}
+
+a.button.waze {
+  background: #33ccff;
+  color: #0b2a33;
+}
+
+/* ---- Mode conduite : grand, calme, sans interaction ---- */
+.drive {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: #0f1512;
+  color: #f2f5f2;
+  margin: -16px;
+  padding: 24px 16px;
+  border-radius: 0;
+}
+
+.drive-label {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9fb3a6;
+  margin: 24px 0 8px;
+}
+
+.drive-speeds {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.drive-speed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.drive-speed-value {
+  font-size: 5.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.drive-speed-unit {
+  font-size: 0.9rem;
+  color: #9fb3a6;
+  margin-top: 4px;
+}
+
+.drive-savings {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #6fd39a;
+  line-height: 1.1;
+}
+
+.drive-sub {
+  color: #9fb3a6;
+  margin: 8px 0 0;
+}
+
+.drive-footer {
+  margin-top: 32px;
+  font-size: 1.1rem;
+}
+
+.drive-exit {
+  margin-top: 40px;
+  color: #9fb3a6;
+  font-size: 0.85rem;
+}

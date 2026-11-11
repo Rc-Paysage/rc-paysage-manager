@@ -17,6 +17,23 @@ npm run typecheck
 npm run build
 ```
 
+## Utilisation en voiture (iPhone + Waze dans CarPlay)
+
+EcoPilot est une application web installable, pas une app CarPlay : CarPlay n'accepte que des
+applications natives validées par Apple, et Waze n'expose aucune API tierce. Le fonctionnement
+prévu est donc : Waze sur l'écran CarPlay de la voiture, EcoPilot sur le téléphone à côté.
+
+1. Ouvrir l'URL de l'app dans Safari, puis **Partager → Sur l'écran d'accueil** : EcoPilot se
+   lance ensuite comme une app, plein écran.
+2. Avant de partir : destination, distance, type de trajet, tolérance de temps, et la **durée
+   annoncée par Waze** (facultatif mais recommandé : c'est ce qui ancre les temps sur la réalité).
+3. **Calculer ma stratégie**, puis **Ouvrir dans Waze** (lien universel Waze, lance la navigation)
+   et **Mode conduite** : vitesse conseillée, économie estimée, temps ajouté — écran maintenu
+   allumé, aucune interaction au volant.
+
+Le mode avancé (`/avance`) conserve la saisie segment par segment ; le Test Lab (`/lab`) enregistre
+les relevés réels.
+
 ## Architecture
 
 ```
